@@ -52180,6 +52180,13 @@
           ]
         }
       }
+    },
+    "test_sample": {
+      "patient": "test_patient",
+      "sottorivalab_project": "test_project",
+      "sample_type": "test_type",
+      "sex": null,
+      "seq": {}
     }
   }
 }
