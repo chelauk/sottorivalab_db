@@ -265,6 +265,18 @@ add_bam() {
   : "${seq_type:?Missing --seq-type}"
   : "${bam:?Missing --bam}"
 
+  # Default values if not provided
+  epoch="${epoch:-0}"
+  created="${created:-unknown}"
+  size="${size:-unknown}"
+
+  if [[ ! -f "$json" ]]; then
+    die "Database file not found: $json"
+  fi
+
+  local tmp_file
+  tmp_file=$(mktemp)
+
   jq --arg s "$sample" \
      --arg st "$seq_type" \
      --arg e "$epoch" \
@@ -284,7 +296,15 @@ add_bam() {
         epoch: ($e | tonumber)
       }
     }]
-  ' "$json"
+  ' "$json" > "$tmp_file"
+  
+  if [[ $? -eq 0 ]]; then
+    mv "$tmp_file" "$json"
+    echo "Added BAM to sample $sample ($seq_type)"
+  else
+    rm -f "$tmp_file"
+    die "Failed to update JSON"
+  fi
 }
 
 list_duplicate_bams() {
