@@ -310,8 +310,8 @@ add_bam() {
   sample_exists=$(jq --arg s "$sample" '.samples | has($s)' "$json")
   
   if [[ "$sample_exists" != "true" ]]; then
-    echo "Warning: Sample '$sample' does not exist in the database. BAM file not added."
-    echo "       Please use 'add-sample' to create the sample first."
+    echo "Warning: Sample '$sample' does not exist in the database. BAM file not added." >&2
+    echo "       Please use 'add-sample' to create the sample first." >&2
     return 1
   fi
 
