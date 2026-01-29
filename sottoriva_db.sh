@@ -51,6 +51,14 @@ add_sample() {
   : "${project:?Missing --project}"
   : "${sample_type:?Missing --sample-type}"
 
+  if [[ ! -f "$json" ]]; then
+    # Create empty DB if not exists
+    echo '{"samples":{}}' > "$json"
+  fi
+
+  local tmp_file
+  tmp_file=$(mktemp)
+
   jq --arg s "$sample" \
      --arg pat "$patient" \
      --arg pr "$project" \
@@ -62,7 +70,15 @@ add_sample() {
       sample_type: $st,
       seq: {}
     }
-  ' "$json"
+  ' "$json" > "$tmp_file"
+  
+  if [[ $? -eq 0 ]]; then
+    mv "$tmp_file" "$json"
+    echo "Added sample $sample"
+  else
+    rm -f "$tmp_file"
+    die "Failed to update JSON"
+  fi
 }
 
 add_fastq() {
@@ -92,6 +108,13 @@ add_fastq() {
   : "${run:?Missing --run}"
   : "${lane:?Missing --lane}"
   : "${r1:?Missing --r1}"
+
+  if [[ ! -f "$json" ]]; then
+    die "Database file not found: $json"
+  fi
+
+  local tmp_file
+  tmp_file=$(mktemp)
 
   jq --arg s "$sample" \
      --arg st "$seq_type" \
@@ -137,7 +160,15 @@ add_fastq() {
       + (if $r2 != "" then { R2: $r2 } else {} end)
       + (if $r3 != "" then { R3: $r3 } else {} end)
     )
-  ' "$json"
+  ' "$json" > "$tmp_file"
+  
+  if [[ $? -eq 0 ]]; then
+    mv "$tmp_file" "$json"
+    echo "Added FASTQs for $sample"
+  else
+    rm -f "$tmp_file"
+    die "Failed to update JSON"
+  fi
 }
 
 # Simplified add_fastq that detects lane and read info from filename
@@ -272,6 +303,16 @@ add_bam() {
 
   if [[ ! -f "$json" ]]; then
     die "Database file not found: $json"
+  fi
+
+  # Check if sample exists
+  local sample_exists
+  sample_exists=$(jq --arg s "$sample" '.samples | has($s)' "$json")
+  
+  if [[ "$sample_exists" != "true" ]]; then
+    echo "Warning: Sample '$sample' does not exist in the database. BAM file not added."
+    echo "       Please use 'add-sample' to create the sample first."
+    return 1
   fi
 
   local tmp_file
