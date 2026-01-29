@@ -244,12 +244,15 @@ add_fastq_simple() {
 }
 
 add_bam() {
-  local sample="" seq_type="" bam="" pipeline_url="" json="working_con_db.json"
+  local sample="" seq_type="" epoch="" created="" size="" bam="" pipeline_url="" json="working_con_db.json"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --sample)       sample="$2"; shift 2 ;;
       --seq-type)     seq_type="$2"; shift 2 ;;
+      --epoch)        epoch="$2"; shift 2 ;;
+      --created)      created="$2"; shift 2 ;;
+      --size)         size="$2"; shift 2 ;;
       --bam)          bam="$2"; shift 2 ;;
       --pipeline-url) pipeline_url="$2"; shift 2 ;;
       --json)         json="$2"; shift 2 ;;
@@ -262,37 +265,13 @@ add_bam() {
   : "${seq_type:?Missing --seq-type}"
   : "${bam:?Missing --bam}"
 
-  # Get file metadata if file exists
-  local size="unknown"
-  local created="unknown"
-  local epoch=0
-  
-  if [[ -f "$bam" ]]; then
-    # Try to get metadata using stat (works on macOS/BSD and Linux differently)
-    if stat -f %z "$bam" &>/dev/null; then
-      # macOS / BSD
-      size=$(du -h "$bam" | cut -f1)
-      epoch=$(stat -f %m "$bam")
-      created=$(date -r "$epoch")
-    else
-      # Linux (GNU)
-      size=$(du -h "$bam" | cut -f1)
-      epoch=$(stat -c %Y "$bam")
-      created=$(date -d "@$epoch")
-    fi
-  else
-    echo "Warning: BAM file '$bam' not found. Metadata will be incomplete."
-    epoch=$(date +%s)
-    created=$(date)
-  fi
-
   jq --arg s "$sample" \
      --arg st "$seq_type" \
+     --arg e "$epoch" \
+     --arg c "$created" \
+     --arg sz "$size" \
      --arg bam "$bam" \
      --arg url "$pipeline_url" \
-     --arg size "$size" \
-     --arg created "$created" \
-     --arg epoch "$epoch" \
      '
     .samples[$s].seq[$st].processed_data.bam //= [] |
     .samples[$s].seq[$st].processed_data.bam += [{
@@ -300,9 +279,9 @@ add_bam() {
       file_type: "bam",
       pipeline_url: $url,
       metadata: {
-        size: $size,
-        created: $created,
-        epoch: ($epoch | tonumber)
+        size: $sz,
+        created: $c,
+        epoch: ($e | tonumber)
       }
     }]
   ' "$json"
