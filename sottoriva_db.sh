@@ -33,14 +33,7 @@ EOF
 add_sample() {
   local sample="" patient="" project="" sample_type="" json="working_con_db.json"
 
-  # GNU getopt for long options
-  local opts
-  opts=$(getopt -o '' \
-    --long sample:,patient:,project:,sample-type:,json:,help \
-    -n 'sottoriva_db add-sample' -- "$@") || exit 1
-  eval set -- "$opts"
-
-  while true; do
+  while [[ $# -gt 0 ]]; do
     case "$1" in
       --sample)      sample="$2"; shift 2 ;;
       --patient)     patient="$2"; shift 2 ;;
@@ -48,7 +41,7 @@ add_sample() {
       --sample-type) sample_type="$2"; shift 2 ;;
       --json)        json="$2"; shift 2 ;;
       --help)        echo "Usage: sottoriva_db add-sample --sample S --patient P --project PR --sample-type T [--json FILE]"; return 0 ;;
-      --) shift; break ;;
+
       *) die "Unexpected arg: $1" ;;
     esac
   done
@@ -269,17 +262,48 @@ add_bam() {
   : "${seq_type:?Missing --seq-type}"
   : "${bam:?Missing --bam}"
 
+  # Get file metadata if file exists
+  local size="unknown"
+  local created="unknown"
+  local epoch=0
+  
+  if [[ -f "$bam" ]]; then
+    # Try to get metadata using stat (works on macOS/BSD and Linux differently)
+    if stat -f %z "$bam" &>/dev/null; then
+      # macOS / BSD
+      size=$(du -h "$bam" | cut -f1)
+      epoch=$(stat -f %m "$bam")
+      created=$(date -r "$epoch")
+    else
+      # Linux (GNU)
+      size=$(du -h "$bam" | cut -f1)
+      epoch=$(stat -c %Y "$bam")
+      created=$(date -d "@$epoch")
+    fi
+  else
+    echo "Warning: BAM file '$bam' not found. Metadata will be incomplete."
+    epoch=$(date +%s)
+    created=$(date)
+  fi
+
   jq --arg s "$sample" \
      --arg st "$seq_type" \
      --arg bam "$bam" \
      --arg url "$pipeline_url" \
+     --arg size "$size" \
+     --arg created "$created" \
+     --arg epoch "$epoch" \
      '
     .samples[$s].seq[$st].processed_data.bam //= [] |
     .samples[$s].seq[$st].processed_data.bam += [{
       file_path: $bam,
       file_type: "bam",
       pipeline_url: $url,
-      metadata: {}
+      metadata: {
+        size: $size,
+        created: $created,
+        epoch: ($epoch | tonumber)
+      }
     }]
   ' "$json"
 }
