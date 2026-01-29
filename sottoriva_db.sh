@@ -315,6 +315,18 @@ add_bam() {
     return 1
   fi
 
+  # Check if BAM already exists for this sample/seq_type
+  local bam_exists
+  bam_exists=$(jq --arg s "$sample" --arg st "$seq_type" --arg bam "$bam" '
+    .samples[$s].seq[$st].processed_data.bam // [] | 
+    any(.file_path == $bam)
+  ' "$json")
+  
+  if [[ "$bam_exists" == "true" ]]; then
+    echo "Warning: BAM file '$bam' already exists for sample '$sample' ($seq_type). Skipping." >&2
+    return 0
+  fi
+
   local tmp_file
   tmp_file=$(mktemp)
 
