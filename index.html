@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -10,18 +10,60 @@
   <script src="https://cdn.jsdelivr.net/npm/jsoneditor@10.1.3/dist/jsoneditor.min.js"></script>
 
   <style>
-    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-    header { padding: 10px 12px; border-bottom: 1px solid #ddd; display: flex; gap: 10px; align-items: center; }
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background-color: #f8f9fa; }
+    header { padding: 10px 12px; border-bottom: 1px solid #ddd; display: flex; gap: 10px; align-items: center; background-color: #fff; }
     #editor { height: calc(100vh - 52px); }
     .hint { color: #555; font-size: 14px; }
-    button { padding: 6px 10px; cursor: pointer; }
-    input[type="file"] { display: none; }
+    button { padding: 6px 10px; cursor: pointer; border: 1px solid #ccc; background-color: #f0f0f0; border-radius: 4px; }
+
+    #dashboard {
+      padding: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      background-color: #e9ecef;
+      border-bottom: 1px solid #ddd;
+    }
+    .stat-card {
+      background-color: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      flex-grow: 1;
+    }
+    .stat-card h3 { margin: 0 0 8px 0; font-size: 16px; color: #555; }
+    .stat-card .count { font-size: 28px; font-weight: bold; }
+    .stat-card .breakdown { font-size: 14px; line-height: 1.6; }
   </style>
 </head>
 <body>
+
+  <div id="dashboard">
+    <div class="stat-card">
+      <h3>Total Patients</h3>
+      <div id="patient-count" class="count">...</div>
+    </div>
+    <div class="stat-card">
+      <h3>Total Samples</h3>
+      <div id="sample-count" class="count">...</div>
+    </div>
+    <div class="stat-card">
+      <h3>Aligned Files by Type (.bam)</h3>
+      <div id="aligned-files-breakdown" class="breakdown">...</div>
+    </div>
+    <div class="stat-card">
+      <h3>Samples by Type</h3>
+      <div id="type-breakdown" class="breakdown">...</div>
+    </div>
+    <div class="stat-card">
+      <h3>Samples by Project</h3>
+      <div id="project-breakdown" class="breakdown">...</div>
+    </div>
+  </div>
+
   <header>
     <button id="loadBtn">Load db.json</button>
-    <span class="hint">Pick a JSON file → browse, expand/collapse, Ctrl/Cmd+F for search (plus built-in search).</span>
+    <span class="hint">Pick a JSON file to browse, expand/collapse, Ctrl/Cmd+F for search.</span>
     <input id="file" type="file" accept=".json,application/json" />
   </header>
 
@@ -31,25 +73,83 @@
     const container = document.getElementById('editor');
     const editor = new JSONEditor(container, {
       mode: 'tree',
-      modes: ['tree', 'view', 'code'],  // allow switching if you want
+      modes: ['tree', 'view', 'code'],
       search: true,
       navigationBar: true,
       statusBar: true
     });
 
+    // --- DOM elements ---
+    const patientCountEl = document.getElementById('patient-count');
+    const sampleCountEl = document.getElementById('sample-count');
+    const alignedFilesBreakdownEl = document.getElementById('aligned-files-breakdown');
+    const typeBreakdownEl = document.getElementById('type-breakdown');
+    const projectBreakdownEl = document.getElementById('project-breakdown');
+
+    function updateDashboard(jsonData) {
+      if (!jsonData || !jsonData.samples) {
+        patientCountEl.textContent = 'N/A';
+        sampleCountEl.textContent = 'N/A';
+        alignedFilesBreakdownEl.innerHTML = 'N/A';
+        typeBreakdownEl.innerHTML = 'N/A';
+        projectBreakdownEl.innerHTML = 'N/A';
+        return;
+      }
+      const samples = Object.values(jsonData.samples);
+      const patientIds = new Set(samples.map(s => s.patient));
+      const typeCounts = samples.reduce((acc, s) => { acc[s.sample_type] = (acc[s.sample_type] || 0) + 1; return acc; }, {});
+      const projectCounts = samples.reduce((acc, s) => { acc[s.sottorivalab_project] = (acc[s.sottorivalab_project] || 0) + 1; return acc; }, {});
+
+      const bamCountsByType = {};
+      function findBamsRecursive(obj) {
+        let count = 0;
+        for (const key in obj) {
+          if (typeof obj[key] === 'string' && obj[key] && obj[key].endsWith('.bam')) {
+            count++;
+          } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+            count += findBamsRecursive(obj[key]);
+          }
+        }
+        return count;
+      }
+
+      for (const sample of samples) {
+        if (sample.seq) {
+          for (const seqType in sample.seq) {
+            const count = findBamsRecursive(sample.seq[seqType]);
+            if (count > 0) {
+              bamCountsByType[seqType] = (bamCountsByType[seqType] || 0) + count;
+            }
+          }
+        }
+      }
+
+      patientCountEl.textContent = patientIds.size;
+      sampleCountEl.textContent = samples.length;
+      alignedFilesBreakdownEl.innerHTML = Object.entries(bamCountsByType).map(([key, val]) => `<strong>${key}:</strong> ${val}`).join('<br>') || 'None found.';
+      typeBreakdownEl.innerHTML = Object.entries(typeCounts).map(([key, val]) => `<strong>${key}:</strong> ${val}`).join('<br>');
+      projectBreakdownEl.innerHTML = Object.entries(projectCounts).map(([key, val]) => `<strong>${key}:</strong> ${val}`).join('<br>');
+    }
+
     const fileInput = document.getElementById('file');
     document.getElementById('loadBtn').addEventListener('click', () => fileInput.click());
 
-    fileInput.addEventListener('change', async (e) => {
-      const f = e.target.files?.[0];
-      if (!f) return;
+    async function loadJson(file) {
+      if (!file) return;
       try {
-        const text = await f.text();
+        const text = await file.text();
         const json = JSON.parse(text);
         editor.set(json);
+        updateDashboard(json);
+        editor.expand(path => path.length < 2);
       } catch (err) {
         alert("Could not load JSON: " + err);
+        editor.set({ error: "Could not load or parse the JSON file.", details: err.message });
       }
+    }
+
+    fileInput.addEventListener('change', async (e) => {
+      loadJson(e.target.files?.[0]);
     });
 
     // Optional: show an empty structure hint
@@ -57,4 +157,3 @@
   </script>
 </body>
 </html>
-
