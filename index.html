@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JSON DB Viewer</title>
+
+  <!-- jsoneditor via CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsoneditor@10.1.3/dist/jsoneditor.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/jsoneditor@10.1.3/dist/jsoneditor.min.js"></script>
+
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    header { padding: 10px 12px; border-bottom: 1px solid #ddd; display: flex; gap: 10px; align-items: center; }
+    #editor { height: calc(100vh - 52px); }
+    .hint { color: #555; font-size: 14px; }
+    button { padding: 6px 10px; cursor: pointer; }
+    input[type="file"] { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <button id="loadBtn">Load db.json</button>
+    <span class="hint">Pick a JSON file → browse, expand/collapse, Ctrl/Cmd+F for search (plus built-in search).</span>
+    <input id="file" type="file" accept=".json,application/json" />
+  </header>
+
+  <div id="editor"></div>
+
+  <script>
+    const container = document.getElementById('editor');
+    const editor = new JSONEditor(container, {
+      mode: 'tree',
+      modes: ['tree', 'view', 'code'],  // allow switching if you want
+      search: true,
+      navigationBar: true,
+      statusBar: true
+    });
+
+    const fileInput = document.getElementById('file');
+    document.getElementById('loadBtn').addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', async (e) => {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      try {
+        const text = await f.text();
+        const json = JSON.parse(text);
+        editor.set(json);
+      } catch (err) {
+        alert("Could not load JSON: " + err);
+      }
+    });
+
+    // Optional: show an empty structure hint
+    editor.set({ help: "Click 'Load db.json' to open your database file." });
+  </script>
+</body>
+</html>
+
