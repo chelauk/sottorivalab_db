@@ -14,6 +14,13 @@ Usage:
 
 Commands:
   add-sample           Add a sample if missing
+  set-sample-meta      Update sample metadata fields for an existing sample
+  set-seq-meta         Update sequencing metadata (indexing/technology) for a seq type
+  show-sample-meta     Show sample metadata for a sample
+  list-missing-raw-seq List sample seq blocks with missing raw_sequence
+  audit                Run a data-quality audit (missing required fields)
+  validate-db          Validate DB JSON against JSON Schema
+  add-processed        Add processed output (vcf/cna/qc) to a sample
   add-fastq            Add FASTQ files to a sample (detailed mode)
   add-fastq-simple     Add FASTQ files with automatic lane/read detection
   add-bam              Add a BAM file to a sample
@@ -24,6 +31,13 @@ Commands:
 
 Run:
   sottoriva_db add-sample --help
+  sottoriva_db set-sample-meta --help
+  sottoriva_db set-seq-meta --help
+  sottoriva_db show-sample-meta --help
+  sottoriva_db list-missing-raw-seq --help
+  sottoriva_db audit --help
+  sottoriva_db validate-db --help
+  sottoriva_db add-processed --help
   sottoriva_db add-fastq-simple <sample> <gf_id> <gf_project> <run> <seq_type> <path>
   sottoriva_db remove-bam --help
   sottoriva_db cleanup-bams --help
@@ -32,6 +46,7 @@ EOF
 
 add_sample() {
   local sample="" patient="" project="" sample_type="" json="working_con_db.json"
+  local phenotype="" case_control="" tissue_site=""
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -39,8 +54,11 @@ add_sample() {
       --patient)     patient="$2"; shift 2 ;;
       --project)     project="$2"; shift 2 ;;
       --sample-type) sample_type="$2"; shift 2 ;;
+      --phenotype)   phenotype="$2"; shift 2 ;;
+      --case-control) case_control="$2"; shift 2 ;;
+      --tissue-site) tissue_site="$2"; shift 2 ;;
       --json)        json="$2"; shift 2 ;;
-      --help)        echo "Usage: sottoriva_db add-sample --sample S --patient P --project PR --sample-type T [--json FILE]"; return 0 ;;
+      --help)        echo "Usage: sottoriva_db add-sample --sample S --patient P --project PR --sample-type T [--phenotype V] [--case-control V] [--tissue-site V] [--json FILE]"; return 0 ;;
 
       *) die "Unexpected arg: $1" ;;
     esac
@@ -62,14 +80,39 @@ add_sample() {
   jq --arg s "$sample" \
      --arg pat "$patient" \
      --arg pr "$project" \
-     --arg st "$sample_type" '
+     --arg st "$sample_type" \
+     --arg pheno "$phenotype" \
+     --arg cc "$case_control" \
+     --arg site "$tissue_site" '
     .samples[$s] //= {
-      patient: $pat,
-      sex: null,
-      sottorivalab_project: $pr,
-      sample_type: $st,
+      sample_meta: {
+        patient: $pat,
+        sex: null,
+        sottorivalab_project: $pr,
+        sample_type: $st,
+        phenotype: null,
+        case_control: null,
+        tissue_site: null
+      },
       seq: {}
-    }
+    } |
+    .samples[$s].sample_meta //= {
+      patient: null,
+      sex: null,
+      sottorivalab_project: null,
+      sample_type: null,
+      phenotype: null,
+      case_control: null,
+      tissue_site: null
+    } |
+    .samples[$s].sample_meta.patient = (.samples[$s].sample_meta.patient // .samples[$s].patient // $pat) |
+    .samples[$s].sample_meta.sex = (.samples[$s].sample_meta.sex // .samples[$s].sex // null) |
+    .samples[$s].sample_meta.sottorivalab_project = (.samples[$s].sample_meta.sottorivalab_project // .samples[$s].sottorivalab_project // $pr) |
+    .samples[$s].sample_meta.sample_type = (.samples[$s].sample_meta.sample_type // .samples[$s].sample_type // $st) |
+    .samples[$s].sample_meta.phenotype = (if $pheno == "" then .samples[$s].sample_meta.phenotype else $pheno end) |
+    .samples[$s].sample_meta.case_control = (if $cc == "" then .samples[$s].sample_meta.case_control else $cc end) |
+    .samples[$s].sample_meta.tissue_site = (if $site == "" then .samples[$s].sample_meta.tissue_site else $site end) |
+    del(.samples[$s].patient, .samples[$s].sex, .samples[$s].sottorivalab_project, .samples[$s].sample_type)
   ' "$json" > "$tmp_file"
   
   if [[ $? -eq 0 ]]; then
@@ -127,6 +170,8 @@ add_fastq() {
      --arg r3 "$r3" \
      '
     # Ensure seq type object exists
+    .samples[$s].seq[$st].indexing //= null |
+    .samples[$s].seq[$st].technology //= null |
     .samples[$s].seq[$st].raw_sequence //= [] |
     
     # 1. Find or create the object for this gf_id
@@ -233,6 +278,8 @@ add_fastq_simple() {
      --arg path "$path" \
      '
     # Ensure seq type object exists
+    .samples[$s].seq[$st].indexing //= null |
+    .samples[$s].seq[$st].technology //= null |
     .samples[$s].seq[$st].raw_sequence //= [] |
     
     # 1. Find or create the object for this gf_id
@@ -268,6 +315,502 @@ add_fastq_simple() {
   if [[ $? -eq 0 ]]; then
     mv "$tmp_file" "$json"
     echo "Added $read_type for lane $lane to sample $sample (gf_id: $gf_id, run: $run)"
+  else
+    rm -f "$tmp_file"
+    die "Failed to update JSON"
+  fi
+}
+
+set_sample_meta() {
+  local sample="" phenotype="" case_control="" tissue_site="" json="working_con_db.json"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --sample)       sample="$2"; shift 2 ;;
+      --phenotype)    phenotype="$2"; shift 2 ;;
+      --case-control) case_control="$2"; shift 2 ;;
+      --tissue-site)  tissue_site="$2"; shift 2 ;;
+      --json)         json="$2"; shift 2 ;;
+      --help)
+        echo "Usage: sottoriva_db set-sample-meta --sample S [--phenotype V] [--case-control V] [--tissue-site V] [--json FILE]"
+        return 0
+        ;;
+      *) die "Unexpected arg: $1" ;;
+    esac
+  done
+
+  : "${sample:?Missing --sample}"
+
+  if [[ -z "$phenotype" && -z "$case_control" && -z "$tissue_site" ]]; then
+    die "No metadata fields provided. Set at least one of: --phenotype, --case-control, --tissue-site"
+  fi
+
+  if [[ ! -f "$json" ]]; then
+    die "Database file not found: $json"
+  fi
+
+  local sample_exists
+  sample_exists=$(jq --arg s "$sample" '.samples | has($s)' "$json")
+  if [[ "$sample_exists" != "true" ]]; then
+    die "Sample not found: $sample"
+  fi
+
+  local tmp_file
+  tmp_file=$(mktemp)
+
+  jq --arg s "$sample" \
+     --arg pheno "$phenotype" \
+     --arg cc "$case_control" \
+     --arg site "$tissue_site" '
+    .samples[$s].sample_meta //= {
+      patient: null,
+      sex: null,
+      sottorivalab_project: null,
+      sample_type: null,
+      phenotype: null,
+      case_control: null,
+      tissue_site: null
+    } |
+    .samples[$s].sample_meta.patient = (.samples[$s].sample_meta.patient // .samples[$s].patient // null) |
+    .samples[$s].sample_meta.sex = (.samples[$s].sample_meta.sex // .samples[$s].sex // null) |
+    .samples[$s].sample_meta.sottorivalab_project = (.samples[$s].sample_meta.sottorivalab_project // .samples[$s].sottorivalab_project // null) |
+    .samples[$s].sample_meta.sample_type = (.samples[$s].sample_meta.sample_type // .samples[$s].sample_type // null) |
+    .samples[$s].sample_meta.phenotype = (if $pheno == "" then .samples[$s].sample_meta.phenotype else $pheno end) |
+    .samples[$s].sample_meta.case_control = (if $cc == "" then .samples[$s].sample_meta.case_control else $cc end) |
+    .samples[$s].sample_meta.tissue_site = (if $site == "" then .samples[$s].sample_meta.tissue_site else $site end) |
+    del(.samples[$s].patient, .samples[$s].sex, .samples[$s].sottorivalab_project, .samples[$s].sample_type)
+  ' "$json" > "$tmp_file"
+
+  if [[ $? -eq 0 ]]; then
+    mv "$tmp_file" "$json"
+    echo "Updated sample_meta for $sample"
+  else
+    rm -f "$tmp_file"
+    die "Failed to update JSON"
+  fi
+}
+
+set_seq_meta() {
+  local sample="" seq_type="" indexing="" technology="" json="working_con_db.json"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --sample) sample="$2"; shift 2 ;;
+      --seq-type) seq_type="$2"; shift 2 ;;
+      --indexing) indexing="$2"; shift 2 ;;
+      --technology) technology="$2"; shift 2 ;;
+      --json) json="$2"; shift 2 ;;
+      --help)
+        echo "Usage: sottoriva_db set-seq-meta --sample S --seq-type ST [--indexing V] [--technology V] [--json FILE]"
+        return 0
+        ;;
+      *) die "Unexpected arg: $1" ;;
+    esac
+  done
+
+  : "${sample:?Missing --sample}"
+  : "${seq_type:?Missing --seq-type}"
+
+  if [[ -z "$indexing" && -z "$technology" ]]; then
+    die "No sequencing metadata provided. Set at least one of: --indexing, --technology"
+  fi
+
+  if [[ ! -f "$json" ]]; then
+    die "Database file not found: $json"
+  fi
+
+  local sample_exists
+  sample_exists=$(jq --arg s "$sample" '.samples | has($s)' "$json")
+  if [[ "$sample_exists" != "true" ]]; then
+    die "Sample not found: $sample"
+  fi
+
+  local tmp_file
+  tmp_file=$(mktemp)
+
+  jq --arg s "$sample" --arg st "$seq_type" --arg idx "$indexing" --arg tech "$technology" '
+    .samples[$s].seq[$st].indexing //= null |
+    .samples[$s].seq[$st].technology //= null |
+    .samples[$s].seq[$st].raw_sequence //= [] |
+    .samples[$s].seq[$st].processed_data //= {} |
+    .samples[$s].seq[$st].processed_data.bam //= [] |
+    .samples[$s].seq[$st].processed_data.vcf //= [] |
+    .samples[$s].seq[$st].processed_data.cna //= [] |
+    .samples[$s].seq[$st].processed_data.qc //= [] |
+    .samples[$s].seq[$st].indexing = (if $idx == "" then .samples[$s].seq[$st].indexing else $idx end) |
+    .samples[$s].seq[$st].technology = (if $tech == "" then .samples[$s].seq[$st].technology else $tech end)
+  ' "$json" > "$tmp_file"
+
+  if [[ $? -eq 0 ]]; then
+    mv "$tmp_file" "$json"
+    echo "Updated sequencing metadata for $sample ($seq_type)"
+  else
+    rm -f "$tmp_file"
+    die "Failed to update JSON"
+  fi
+}
+
+show_sample_meta() {
+  local sample="" json="working_con_db.json"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --sample) sample="$2"; shift 2 ;;
+      --json)   json="$2"; shift 2 ;;
+      --help)
+        echo "Usage: sottoriva_db show-sample-meta --sample S [--json FILE]"
+        return 0
+        ;;
+      *) die "Unexpected arg: $1" ;;
+    esac
+  done
+
+  : "${sample:?Missing --sample}"
+
+  if [[ ! -f "$json" ]]; then
+    die "Database file not found: $json"
+  fi
+
+  local sample_exists
+  sample_exists=$(jq --arg s "$sample" '.samples | has($s)' "$json")
+  if [[ "$sample_exists" != "true" ]]; then
+    die "Sample not found: $sample"
+  fi
+
+  jq -r --arg s "$sample" '
+    .samples[$s].sample_meta // {
+      patient: null,
+      sex: null,
+      sottorivalab_project: null,
+      sample_type: null,
+      phenotype: null,
+      case_control: null,
+      tissue_site: null
+    } as $m |
+    "sample: \($s)\n" +
+    "patient: \($m.patient // "null")\n" +
+    "sex: \($m.sex // "null")\n" +
+    "sottorivalab_project: \($m.sottorivalab_project // "null")\n" +
+    "sample_type: \($m.sample_type // "null")\n" +
+    "phenotype: \($m.phenotype // "null")\n" +
+    "case_control: \($m.case_control // "null")\n" +
+    "tissue_site: \($m.tissue_site // "null")"
+  ' "$json"
+}
+
+validate_db() {
+  local json="working_con_db.json" schema="working_con_db.schema.json"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --json) json="$2"; shift 2 ;;
+      --schema) schema="$2"; shift 2 ;;
+      --help)
+        echo "Usage: sottoriva_db validate-db [--json FILE] [--schema FILE]"
+        return 0
+        ;;
+      *) die "Unexpected arg: $1" ;;
+    esac
+  done
+
+  if [[ ! -f "$json" ]]; then
+    die "Database file not found: $json"
+  fi
+  if [[ ! -f "$schema" ]]; then
+    die "Schema file not found: $schema"
+  fi
+
+  python3 - "$json" "$schema" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+json_path = Path(sys.argv[1])
+schema_path = Path(sys.argv[2])
+
+try:
+    import jsonschema  # type: ignore
+except Exception:
+    print("ERROR: python package 'jsonschema' is not installed.", file=sys.stderr)
+    print("Install with: pip install jsonschema", file=sys.stderr)
+    sys.exit(2)
+
+try:
+    data = json.loads(json_path.read_text())
+except Exception as exc:
+    print(f"ERROR: failed to parse JSON '{json_path}': {exc}", file=sys.stderr)
+    sys.exit(1)
+
+try:
+    schema = json.loads(schema_path.read_text())
+except Exception as exc:
+    print(f"ERROR: failed to parse schema '{schema_path}': {exc}", file=sys.stderr)
+    sys.exit(1)
+
+try:
+    jsonschema.validate(instance=data, schema=schema)
+except jsonschema.ValidationError as exc:
+    location = "/".join(str(p) for p in exc.absolute_path) or "<root>"
+    print(f"INVALID: {exc.message}", file=sys.stderr)
+    print(f"At: {location}", file=sys.stderr)
+    sys.exit(1)
+
+print(f"VALID: {json_path} matches {schema_path}")
+PY
+}
+
+list_missing_raw_seq() {
+  local json="working_con_db.json"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --json) json="$2"; shift 2 ;;
+      --help)
+        echo "Usage: sottoriva_db list-missing-raw-seq [--json FILE]"
+        return 0
+        ;;
+      *) die "Unexpected arg: $1" ;;
+    esac
+  done
+
+  if [[ ! -f "$json" ]]; then
+    die "Database file not found: $json"
+  fi
+
+  local out
+  out=$(jq -r '
+    .samples | to_entries[] as $s |
+    ($s.value.seq // {}) | to_entries[] |
+    select((.value | has("raw_sequence")) | not) |
+    "\($s.key)\t\(.key)"
+  ' "$json")
+
+  if [[ -z "$out" ]]; then
+    echo "No missing raw_sequence entries found."
+    return 0
+  fi
+
+  echo -e "sample\tseq_type"
+  echo "$out"
+}
+
+audit_db() {
+  local json="working_con_db.json"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --json) json="$2"; shift 2 ;;
+      --help)
+        echo "Usage: sottoriva_db audit [--json FILE]"
+        return 0
+        ;;
+      *) die "Unexpected arg: $1" ;;
+    esac
+  done
+
+  if [[ ! -f "$json" ]]; then
+    die "Database file not found: $json"
+  fi
+
+  echo "Audit report for: $json"
+  echo "======================="
+  echo ""
+
+  local sample_meta_missing
+  sample_meta_missing=$(jq -r '
+    .samples | to_entries[] as $s |
+    ($s.value.sample_meta // {}) as $m |
+    ["patient","sex","sottorivalab_project","sample_type","phenotype","case_control","tissue_site"][] as $k |
+    select(($m | has($k)) | not) |
+    "\($s.key)\t\($k)"
+  ' "$json")
+
+  local seq_meta_missing
+  seq_meta_missing=$(jq -r '
+    .samples | to_entries[] as $s |
+    ($s.value.seq // {}) | to_entries[] as $q |
+    ["indexing","technology","raw_sequence","processed_data"][] as $k |
+    select(($q.value | has($k)) | not) |
+    "\($s.key)\t\($q.key)\t\($k)"
+  ' "$json")
+
+  local processed_array_missing
+  processed_array_missing=$(jq -r '
+    .samples | to_entries[] as $s |
+    ($s.value.seq // {}) | to_entries[] as $q |
+    ($q.value.processed_data // {}) as $pd |
+    ["bam","vcf","cna","qc"][] as $k |
+    select(($pd | has($k)) | not) |
+    "\($s.key)\t\($q.key)\t\($k)"
+  ' "$json")
+
+  local counts
+  counts=$(jq -r '
+    {
+      samples: (.samples | length),
+      seq_blocks: ([.samples[]?.seq | to_entries[]?] | length),
+      raw_missing: ([.samples | to_entries[] as $s | ($s.value.seq // {}) | to_entries[] | select((.value | has("raw_sequence")) | not)] | length),
+      processed_missing: ([.samples | to_entries[] as $s | ($s.value.seq // {}) | to_entries[] | select((.value | has("processed_data")) | not)] | length),
+      idx_missing: ([.samples | to_entries[] as $s | ($s.value.seq // {}) | to_entries[] | select((.value | has("indexing")) | not)] | length),
+      tech_missing: ([.samples | to_entries[] as $s | ($s.value.seq // {}) | to_entries[] | select((.value | has("technology")) | not)] | length),
+      pd_bam_missing: ([.samples | to_entries[] as $s | ($s.value.seq // {}) | to_entries[] | select(((.value.processed_data // {}) | has("bam")) | not)] | length),
+      pd_vcf_missing: ([.samples | to_entries[] as $s | ($s.value.seq // {}) | to_entries[] | select(((.value.processed_data // {}) | has("vcf")) | not)] | length),
+      pd_cna_missing: ([.samples | to_entries[] as $s | ($s.value.seq // {}) | to_entries[] | select(((.value.processed_data // {}) | has("cna")) | not)] | length),
+      pd_qc_missing: ([.samples | to_entries[] as $s | ($s.value.seq // {}) | to_entries[] | select(((.value.processed_data // {}) | has("qc")) | not)] | length),
+      sm_patient_missing: ([.samples | to_entries[] | select(((.value.sample_meta // {}) | has("patient")) | not)] | length),
+      sm_sex_missing: ([.samples | to_entries[] | select(((.value.sample_meta // {}) | has("sex")) | not)] | length),
+      sm_project_missing: ([.samples | to_entries[] | select(((.value.sample_meta // {}) | has("sottorivalab_project")) | not)] | length),
+      sm_sample_type_missing: ([.samples | to_entries[] | select(((.value.sample_meta // {}) | has("sample_type")) | not)] | length),
+      sm_phenotype_missing: ([.samples | to_entries[] | select(((.value.sample_meta // {}) | has("phenotype")) | not)] | length),
+      sm_case_control_missing: ([.samples | to_entries[] | select(((.value.sample_meta // {}) | has("case_control")) | not)] | length),
+      sm_tissue_site_missing: ([.samples | to_entries[] | select(((.value.sample_meta // {}) | has("tissue_site")) | not)] | length)
+    }
+  ' "$json")
+
+  echo "Summary:"
+  echo "$counts" | jq -r '
+    "  samples: \(.samples)\n" +
+    "  seq_blocks: \(.seq_blocks)\n" +
+    "  missing seq.raw_sequence: \(.raw_missing)\n" +
+    "  missing seq.processed_data: \(.processed_missing)\n" +
+    "  missing seq.indexing: \(.idx_missing)\n" +
+    "  missing seq.technology: \(.tech_missing)\n" +
+    "  missing processed_data.bam: \(.pd_bam_missing)\n" +
+    "  missing processed_data.vcf: \(.pd_vcf_missing)\n" +
+    "  missing processed_data.cna: \(.pd_cna_missing)\n" +
+    "  missing processed_data.qc: \(.pd_qc_missing)\n" +
+    "  missing sample_meta.patient: \(.sm_patient_missing)\n" +
+    "  missing sample_meta.sex: \(.sm_sex_missing)\n" +
+    "  missing sample_meta.sottorivalab_project: \(.sm_project_missing)\n" +
+    "  missing sample_meta.sample_type: \(.sm_sample_type_missing)\n" +
+    "  missing sample_meta.phenotype: \(.sm_phenotype_missing)\n" +
+    "  missing sample_meta.case_control: \(.sm_case_control_missing)\n" +
+    "  missing sample_meta.tissue_site: \(.sm_tissue_site_missing)"
+  '
+  echo ""
+
+  if [[ -n "$seq_meta_missing" ]]; then
+    echo "Missing seq-level keys (sample, seq_type, key):"
+    echo -e "sample\tseq_type\tkey"
+    echo "$seq_meta_missing"
+    echo ""
+  fi
+
+  if [[ -n "$processed_array_missing" ]]; then
+    echo "Missing processed_data arrays (sample, seq_type, key):"
+    echo -e "sample\tseq_type\tkey"
+    echo "$processed_array_missing"
+    echo ""
+  fi
+
+  if [[ -n "$sample_meta_missing" ]]; then
+    echo "Missing sample_meta keys (sample, key):"
+    echo -e "sample\tkey"
+    echo "$sample_meta_missing"
+    echo ""
+  fi
+
+  if [[ -z "$seq_meta_missing" && -z "$processed_array_missing" && -z "$sample_meta_missing" ]]; then
+    echo "No missing required keys found."
+  fi
+}
+
+add_processed() {
+  local sample="" seq_type="" data_type="" file_path="" pipeline_url="" epoch="" created="" size="" json="working_con_db.json"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --sample)       sample="$2"; shift 2 ;;
+      --seq-type)     seq_type="$2"; shift 2 ;;
+      --data-type)    data_type="$2"; shift 2 ;;
+      --file-path)    file_path="$2"; shift 2 ;;
+      --pipeline-url) pipeline_url="$2"; shift 2 ;;
+      --epoch)        epoch="$2"; shift 2 ;;
+      --created)      created="$2"; shift 2 ;;
+      --size)         size="$2"; shift 2 ;;
+      --json)         json="$2"; shift 2 ;;
+      --help)
+        echo "Usage: sottoriva_db add-processed --sample S --seq-type ST --data-type (vcf|cna|qc) --file-path PATH [--pipeline-url URL] [--epoch E] [--created D] [--size N] [--json FILE]"
+        return 0
+        ;;
+      *) die "Unexpected arg: $1" ;;
+    esac
+  done
+
+  : "${sample:?Missing --sample}"
+  : "${seq_type:?Missing --seq-type}"
+  : "${data_type:?Missing --data-type}"
+  : "${file_path:?Missing --file-path}"
+
+  if [[ "$data_type" != "vcf" && "$data_type" != "cna" && "$data_type" != "qc" ]]; then
+    die "Invalid --data-type: $data_type (allowed: vcf, cna, qc)"
+  fi
+
+  # Default values if not provided
+  epoch="${epoch:-0}"
+  created="${created:-unknown}"
+  size="${size:-unknown}"
+
+  if [[ ! -f "$json" ]]; then
+    die "Database file not found: $json"
+  fi
+
+  # Check if sample exists
+  local sample_exists
+  sample_exists=$(jq --arg s "$sample" '.samples | has($s)' "$json")
+
+  if [[ "$sample_exists" != "true" ]]; then
+    echo "Warning: Sample '$sample' does not exist in the database. Data not added." >&2
+    echo "       Please use 'add-sample' to create the sample first." >&2
+    return 1
+  fi
+
+  # Skip if exact file already exists
+  local file_exists
+  file_exists=$(jq --arg s "$sample" --arg st "$seq_type" --arg dt "$data_type" --arg fp "$file_path" '
+    .samples[$s].seq[$st].processed_data[$dt] // [] |
+    any(.file_path == $fp)
+  ' "$json")
+
+  if [[ "$file_exists" == "true" ]]; then
+    echo "Warning: $data_type file '$file_path' already exists for sample '$sample' ($seq_type). Skipping." >&2
+    return 0
+  fi
+
+  local tmp_file
+  tmp_file=$(mktemp)
+
+  jq --arg s "$sample" \
+     --arg st "$seq_type" \
+     --arg dt "$data_type" \
+     --arg fp "$file_path" \
+     --arg url "$pipeline_url" \
+     --arg e "$epoch" \
+     --arg c "$created" \
+     --arg sz "$size" \
+     '
+    .samples[$s].seq[$st].indexing //= null |
+    .samples[$s].seq[$st].technology //= null |
+    .samples[$s].seq[$st].processed_data //= {} |
+    .samples[$s].seq[$st].processed_data.bam //= [] |
+    .samples[$s].seq[$st].processed_data.vcf //= [] |
+    .samples[$s].seq[$st].processed_data.cna //= [] |
+    .samples[$s].seq[$st].processed_data.qc //= [] |
+    .samples[$s].seq[$st].processed_data[$dt] += [{
+      file_path: $fp,
+      file_type: $dt,
+      pipeline_url: $url,
+      metadata: {
+        size: $sz,
+        created: $c,
+        epoch: ($e | tonumber)
+      }
+    }]
+  ' "$json" > "$tmp_file"
+
+  if [[ $? -eq 0 ]]; then
+    mv "$tmp_file" "$json"
+    echo "Added $data_type to sample $sample ($seq_type)"
   else
     rm -f "$tmp_file"
     die "Failed to update JSON"
@@ -338,7 +881,13 @@ add_bam() {
      --arg bam "$bam" \
      --arg url "$pipeline_url" \
      '
+    .samples[$s].seq[$st].indexing //= null |
+    .samples[$s].seq[$st].technology //= null |
+    .samples[$s].seq[$st].processed_data //= {} |
     .samples[$s].seq[$st].processed_data.bam //= [] |
+    .samples[$s].seq[$st].processed_data.vcf //= [] |
+    .samples[$s].seq[$st].processed_data.cna //= [] |
+    .samples[$s].seq[$st].processed_data.qc //= [] |
     .samples[$s].seq[$st].processed_data.bam += [{
       file_path: $bam,
       file_type: "bam",
@@ -627,6 +1176,13 @@ cleanup_bams() {
 
 case "$cmd" in
   add-sample) add_sample "$@" ;;
+  set-sample-meta) set_sample_meta "$@" ;;
+  set-seq-meta) set_seq_meta "$@" ;;
+  show-sample-meta) show_sample_meta "$@" ;;
+  list-missing-raw-seq) list_missing_raw_seq "$@" ;;
+  audit) audit_db "$@" ;;
+  validate-db) validate_db "$@" ;;
+  add-processed) add_processed "$@" ;;
   add-fastq)  add_fastq "$@" ;;
   add-fastq-simple) add_fastq_simple "$@" ;;
   add-bam)    add_bam "$@" ;;

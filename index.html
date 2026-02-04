@@ -44,6 +44,7 @@
     .hint, .status { color: var(--muted); font-size: 0.9rem; }
     .status.error { color: var(--warn); }
     .badge { border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; font-size: 0.78rem; color: var(--muted); background: #fff; white-space: nowrap; }
+    .missing { border-color: #f0c7a1; background: #fff4ea; color: #9b4b14; font-weight: 600; }
 
     main.app { display: grid; grid-template-columns: minmax(320px, 35%) 1fr; gap: var(--space-3); min-height: 72vh; }
     .pane { min-height: 0; display: flex; flex-direction: column; }
@@ -167,6 +168,7 @@
 
     function normalizeSample(sampleId, rec) {
       const seq = (rec && rec.seq && typeof rec.seq === "object") ? rec.seq : {};
+      const meta = (rec && rec.sample_meta && typeof rec.sample_meta === "object") ? rec.sample_meta : {};
       const seqTypes = Object.keys(seq);
       const gfIds = [];
       const gfSampleIdsAll = [];
@@ -189,9 +191,9 @@
 
       const tokenMap = {
         sample: [sampleId],
-        patient: [rec && rec.patient],
-        project: [rec && rec.sottorivalab_project],
-        type: [rec && rec.sample_type],
+        patient: [meta.patient],
+        project: [meta.sottorivalab_project],
+        type: [meta.sample_type],
         seq: seqTypes,
         gf: gfIds.concat(gfSampleIdsAll),
         gfsample: gfSampleIdsAll,
@@ -211,7 +213,8 @@
         sampleId: sampleId,
         record: rec || {},
         seqTypes: seqTypes,
-        gfIds: uniq(gfIds.concat(gfSampleIdsAll)),
+        gfProjectIds: uniq(gfIds),
+        gfSampleIds: uniq(gfSampleIdsAll),
         runs: uniq(runs),
         paths: uniq(paths),
         bamPaths: uniq(bamPaths),
@@ -289,6 +292,8 @@
       return {
         gfProjects: uniq(gfProjects),
         gfSampleIds: uniq(gfSampleIds),
+        indexing: seqBlock.indexing,
+        technology: seqBlock.technology,
         runs: uniq(runs),
         fastqPaths: uniq(fastqPaths),
         bamPaths: uniq(bamPaths),
@@ -342,8 +347,9 @@
       el.listPane.innerHTML = state.filtered.map(function(sample) {
         const isActive = sample.sampleId === state.selectedId ? " active" : "";
         const label = highlight(sample.sampleId, state.query);
-        const metaLeft = highlight((sample.record && sample.record.sottorivalab_project) || "-", state.query);
-        const metaRight = "seq " + sample.seqTypes.length + " | gf " + sample.gfIds.length + " | run " + sample.runs.length;
+        const sampleMeta = (sample.record && sample.record.sample_meta) || {};
+        const metaLeft = renderValue(sampleMeta.sottorivalab_project, state.query);
+        const metaRight = "seq " + sample.seqTypes.length + " | gf_proj " + sample.gfProjectIds.length + " | gf_sample " + sample.gfSampleIds.length + " | run " + sample.runs.length;
         return '<article class="item' + isActive + '" data-id="' + escapeHtml(sample.sampleId) + '" role="button" tabindex="0">' +
           '<div class="top"><strong>' + label + '</strong><span class="badge count">' + sample.seqTypes.length + ' seq</span></div>' +
           '<div class="meta"><span>' + metaLeft + '</span><span>' + escapeHtml(metaRight) + '</span></div>' +
@@ -375,17 +381,20 @@
       }
 
       const rec = selected.record || {};
+      const meta = (rec.sample_meta && typeof rec.sample_meta === "object") ? rec.sample_meta : {};
       const rows = [
         ["sample_id", selected.sampleId],
-        ["patient", rec.patient],
-        ["sex", rec.sex],
-        ["sottorivalab_project", rec.sottorivalab_project],
-        ["sample_type", rec.sample_type],
+        ["patient", meta.patient],
+        ["sex", meta.sex],
+        ["sottorivalab_project", meta.sottorivalab_project],
+        ["sample_type", meta.sample_type],
+        ["phenotype", meta.phenotype],
+        ["case_control", meta.case_control],
+        ["tissue_site", meta.tissue_site],
         ["sequence_types", selected.seqTypes.join(", ") || "-"],
-        ["gf_ids", selected.gfIds.join(", ") || "-"],
         ["run_ids", selected.runs.join(", ") || "-"]
       ].map(function(pair) {
-        return '<div class="k">' + escapeHtml(pair[0]) + '</div><div class="v">' + highlight(pair[1] == null ? "" : pair[1], state.query) + '</div>';
+        return '<div class="k">' + escapeHtml(pair[0]) + '</div><div class="v">' + renderValue(pair[1], state.query) + '</div>';
       }).join("");
 
       const seqSections = selected.seqTypes.map(function(seqType) {
@@ -418,11 +427,11 @@
         ? info.bamMeta.map(function(meta, i) {
             return '<details><summary>bam ' + (i + 1) + '</summary>' +
               '<div class="kv">' +
-              '<div class="k">bam_path</div><div class="v">' + highlight(meta.path || "-", query) + '</div>' +
-              '<div class="k">creation</div><div class="v">' + highlight(meta.creation_date || "-", query) + '</div>' +
-              '<div class="k">size</div><div class="v">' + highlight(meta.size || "-", query) + '</div>' +
-              '<div class="k">epoch</div><div class="v">' + highlight(meta.epoch || "-", query) + '</div>' +
-              '<div class="k">url</div><div class="v">' + highlight(meta.url || "-", query) + '</div>' +
+              '<div class="k">bam_path</div><div class="v">' + renderValue(meta.path, query) + '</div>' +
+              '<div class="k">creation</div><div class="v">' + renderValue(meta.creation_date, query) + '</div>' +
+              '<div class="k">size</div><div class="v">' + renderValue(meta.size, query) + '</div>' +
+              '<div class="k">epoch</div><div class="v">' + renderValue(meta.epoch, query) + '</div>' +
+              '<div class="k">url</div><div class="v">' + renderValue(meta.url, query) + '</div>' +
               '</div></details>';
           }).join("")
         : '<div class="status">No BAM records found.</div>';
@@ -430,6 +439,8 @@
         '<summary>' + escapeHtml(seqType) + ' (gf_projects ' + info.gfProjects.length + ', gf_samples ' + info.gfSampleIds.length + ', runs ' + info.runs.length + ', fastqs ' + info.fastqPaths.length + ', bams ' + info.bamPaths.length + ')</summary>' +
         '<h4>raw_sequence</h4>' +
         '<div class="kv">' +
+        '<div class="k">indexing</div><div class="v">' + renderValue(info.indexing, query) + '</div>' +
+        '<div class="k">technology</div><div class="v">' + renderValue(info.technology, query) + '</div>' +
         '<div class="k">gf_project_ids</div><div class="v">' + highlight(info.gfProjects.join(", ") || "-", query) + '</div>' +
         '<div class="k">run_ids</div><div class="v">' + highlight(info.runs.join(", ") || "-", query) + '</div>' +
         '<div class="k">gf_sample_ids</div><div class="v">' + highlight(info.gfSampleIds.join(", ") || "-", query) + '</div>' +
@@ -484,6 +495,16 @@
 
     function escapeRegExp(text) {
       return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function renderValue(value, query) {
+      if (value == null) {
+        return '<span class="badge missing">NULL</span>';
+      }
+      if (typeof value === "string" && value.trim() === "") {
+        return '<span class="badge missing">EMPTY</span>';
+      }
+      return highlight(value, query);
     }
 
     function highlight(value, query) {
