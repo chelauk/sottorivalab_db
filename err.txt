@@ -1,206 +1,78 @@
-Warning: Sample 'INT_C135_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C035_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C105_T1_p1_cysticPDO' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C044_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C044_T2' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C044_T2' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C044.buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
+Warning: Sample 'INT_C044_buffycoat' does not exist in the database. BAM file not added.
 Warning: Sample 'INT_C115_germline' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C115_R1T2' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C143_N1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C047_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C047_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C047_Buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C047_Buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C047_T1_p6_PDO' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C047_T1_p6_PDO' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C047_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C017_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C139_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C014_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C036_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C137_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C137_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'COLT01_003_colt_T_L' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C060_germline' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C076_germline' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C099_T1_p2_cysticPDOs' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C099_T1_p2' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C127_N1_p3.bam' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C108_N1_p6.bam' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C048_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C048_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C020.buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
+Warning: Sample 'INT_C020_buffycoat' does not exist in the database. BAM file not added.
 Warning: Sample 'INT_C001_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C001_primaryCRC_FFPE' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C001_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C001_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C081_T2' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C030_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C030_N1_p3.bam' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C034_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C034.buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
+Warning: Sample 'INT_C034_buffycoat' does not exist in the database. BAM file not added.
 Warning: Sample 'INT_C038_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C038_T1_p8' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C115_R1T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C043_T1_p12_PDO' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C043_T1_p12_PDO' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C052_Buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C052_Buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C052_T1_p3_PDO' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C052_T1_p3_PDO' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C052_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C052_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C052_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C011_germline' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_220503_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_220503_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_220503_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_230207_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_230207_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_230207_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_cfDNA_4.bam' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_221103_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_221103_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_221103_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C024.buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
+Warning: Sample 'INT_C024_buffycoat' does not exist in the database. BAM file not added.
 Warning: Sample 'INT_C024_220302_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_220302_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_220302_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_230725_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_221227_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_221227_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_221227_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_230307_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_230307_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C024_230307_cfDNA' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C049_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C049_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C049_T1_p5_PDO' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C049_T1_p5_PDO' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C049_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C061_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C148_N1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C148_N1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C148_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C148_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
+Warning: Sample 'INT_C148_T1_p5' does not exist in the database. BAM file not added.
+Warning: Sample 'INT_C148_T1_p5' does not exist in the database. BAM file not added.
 Warning: Sample 'INT_C147_N1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C032.buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
+Warning: Sample 'INT_C032_buffycoat' does not exist in the database. BAM file not added.
 Warning: Sample 'INT_C006_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C006_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C006_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C006_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C128_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
+Warning: Sample 'INT_C027.buffycoat' does not exist in the database. BAM file not added.
 Warning: Sample 'INT_C027_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C027_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C042-buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C042_T1_p4_T1_p4' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C042_T1_p4_T1_p4' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C042_T1' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
-Warning: Sample 'INT_C023_buffycoat' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
+Warning: Sample 'INT_C042.buffycoat' does not exist in the database. BAM file not added.
+Warning: Sample 'INT_C023.buffycoat' does not exist in the database. BAM file not added.
 Warning: Sample 'INT_C109_germline' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C058_germline' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.
 Warning: Sample 'INT_C098_R1T1_p2_cysticPDOs' does not exist in the database. BAM file not added.
-       Please use 'add-sample' to create the sample first.

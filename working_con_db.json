@@ -464,6 +464,43 @@
       "sottorivalab_project": "2023-ROVIGO",
       "sample_type": "tissue",
       "seq": {
+        "low_pass_wgs": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_268",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0023365",
+                  "run": "240129_A01481_0143_BHN77FDMXY",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2023-PANORAMA/RITM0023365/240129_A01481_0143_BHN77FDMXY/fastq/LAZ_268_S31_L001_R1_001.fastq.gz",
+                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2023-PANORAMA/RITM0023365/240129_A01481_0143_BHN77FDMXY/fastq/LAZ_268_S31_L001_R3_001.fastq.gz"
+                    },
+                    "L002": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2023-PANORAMA/RITM0023365/240129_A01481_0143_BHN77FDMXY/fastq/LAZ_268_S31_L002_R1_001.fastq.gz",
+                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2023-PANORAMA/RITM0023365/240129_A01481_0143_BHN77FDMXY/fastq/LAZ_268_S31_L002_R3_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT01/BTROHT01/BTROHT01_T/BTROHT01_T3/low_pass_wgs/bwa/BTROHT01_T3_filter_none_processed.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "3.3G",
+                  "created": "2024-02-09 13:24:33 +0100",
+                  "epoch": 1707481473
+                }
+              }
+            ]
+          }
+        },
         "wgs": {
           "raw_sequence": [
             {
@@ -528,38 +565,21 @@
                 }
               ]
             }
-          ]
-        }
-      }
-    },
-    "BTROHT01_T3_core_GBM": {
-      "patient": "BTROHT01",
-      "sex": null,
-      "sottorivalab_project": "2023-ROVIGO",
-      "sample_type": "tissue",
-      "seq": {
-        "low_pass_wgs": {
-          "raw_sequence": [
-            {
-              "gf_id": "LAZ_268",
-              "fastqs": [
-                {
-                  "gf_project": "RITM0023365",
-                  "run": "240129_A01481_0143_BHN77FDMXY",
-                  "files": {
-                    "L001": {
-                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2023-PANORAMA/RITM0023365/240129_A01481_0143_BHN77FDMXY/fastq/LAZ_268_S31_L001_R1_001.fastq.gz",
-                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2023-PANORAMA/RITM0023365/240129_A01481_0143_BHN77FDMXY/fastq/LAZ_268_S31_L001_R3_001.fastq.gz"
-                    },
-                    "L002": {
-                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2023-PANORAMA/RITM0023365/240129_A01481_0143_BHN77FDMXY/fastq/LAZ_268_S31_L002_R1_001.fastq.gz",
-                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2023-PANORAMA/RITM0023365/240129_A01481_0143_BHN77FDMXY/fastq/LAZ_268_S31_L002_R3_001.fastq.gz"
-                    }
-                  }
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT01/BTROHT01/BTROHT01_T/BTROHT01_T3/wgs/preprocessing/markduplicates/BTROHT01_T3.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "416G",
+                  "created": "2025-06-08 04:36:55 +0200",
+                  "epoch": 1749350215
                 }
-              ]
-            }
-          ]
+              }
+            ]
+          }
         }
       }
     },
@@ -611,7 +631,31 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT02/BTROHT02/BTROHT02_T/BTROHT02_T2/low_pass_wgs/bwa/BTROHT02_T2_filter_none_processed.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "3.4G",
+                  "created": "2024-02-09 13:24:39 +0100",
+                  "epoch": 1707481479
+                }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT02/BTROHT02/BTROHT02_T/BTROHT02_T2/low_pass_wgs/bwa/BTROHT02_T2_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.5G",
+                  "created": "2025-11-16 18:00:54 +0100",
+                  "epoch": 1763312454
+                }
+              }
+            ]
+          }
         },
         "wgs": {
           "raw_sequence": [
@@ -672,7 +716,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT02/BTROHT02/BTROHT02_T/BTROHT02_T2/BTROHT02_T2/wgs/preprocessing/markduplicates/BTROHT02_T2.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "153G",
+                  "created": "2024-10-04 18:38:41 +0200",
+                  "epoch": 1728059921
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -738,7 +796,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT03/BTROHT03_5ALA_perim/low_pass_wgs/bwa/BTROHT03_5ALA_perim_processed.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "2.1G",
+                  "created": "2023-07-28 15:51:11 +0200",
+                  "epoch": 1690552271
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -771,7 +843,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT03/BTROHT03/BTROHT03_T/BTROHT03_T1/low_pass_wgs/bwa/BTROHT03_T1_processed.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "2.6G",
+                  "created": "2023-07-28 15:52:12 +0200",
+                  "epoch": 1690552332
+                }
+              }
+            ]
+          }
         },
         "wgs": {
           "raw_sequence": [
@@ -832,7 +918,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT03/BTROHT03/BTROHT03_T/BTROHT03_T1/wgs/preprocessing/markduplicates/BTROHT03_T1.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "161G",
+                  "created": "2024-10-04 19:06:43 +0200",
+                  "epoch": 1728061603
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -886,7 +986,31 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT03/BTROHT03/BTROHT03_T/BTROHT03_T4/low_pass_wgs/bwa/BTROHT03_T4_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "2.1G",
+                  "created": "2025-11-16 18:04:20 +0100",
+                  "epoch": 1763312660
+                }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT03/BTROHT03/BTROHT03_T/BTROHT03_T4/low_pass_wgs/bwa/BTROHT03_T4_processed.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "3.0G",
+                  "created": "2023-07-28 15:52:37 +0200",
+                  "epoch": 1690552357
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -955,7 +1079,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT03/BTROHT03_germline/wgs/preprocessing/markduplicates/BTROHT03_germline.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "214G",
+                  "created": "2025-11-13 10:08:24 +0100",
+                  "epoch": 1763024904
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -1009,7 +1147,31 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT04/BTROHT04/BTROHT04_T/BTROHT04_T1/low_pass_wgs/bwa/BTROHT04_T1_processed.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "2.0G",
+                  "created": "2023-07-28 15:51:31 +0200",
+                  "epoch": 1690552291
+                }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT04/BTROHT04/BTROHT04_T/BTROHT04_T1/low_pass_wgs/bwa/BTROHT04_T1_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.5G",
+                  "created": "2025-11-16 18:01:59 +0100",
+                  "epoch": 1763312519
+                }
+              }
+            ]
+          }
         },
         "wgs": {
           "raw_sequence": [
@@ -1070,7 +1232,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT04/BTROHT04/BTROHT04_T/BTROHT04_T1/BTROHT04_T1/wgs/preprocessing/markduplicates/BTROHT04_T1.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "165G",
+                  "created": "2024-10-04 18:35:09 +0200",
+                  "epoch": 1728059709
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -1103,7 +1279,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT04/BTROHT04/BTROHT04_T/BTROHT04_T7/low_pass_wgs/bwa/BTROHT04_T7_processed.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "2.1G",
+                  "created": "2023-07-28 15:51:31 +0200",
+                  "epoch": 1690552291
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -1136,7 +1326,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT05/BTROHT05/BTROHT05_T/BTROHT05_T13/low_pass_wgs/bwa/BTROHT05_T13_processed.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "2.7G",
+                  "created": "2023-07-28 15:52:22 +0200",
+                  "epoch": 1690552342
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -1190,7 +1394,31 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT05/BTROHT05/BTROHT05_T/BTROHT05_T3/low_pass_wgs/bwa/BTROHT05_T3_processed.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.1G",
+                  "created": "2023-07-28 15:49:45 +0200",
+                  "epoch": 1690552185
+                }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT05/BTROHT05/BTROHT05_T/BTROHT05_T3/low_pass_wgs/bwa/BTROHT05_T3_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.7G",
+                  "created": "2025-11-16 18:02:29 +0100",
+                  "epoch": 1763312549
+                }
+              }
+            ]
+          }
         },
         "wgs": {
           "raw_sequence": [
@@ -1251,7 +1479,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT05/BTROHT05/BTROHT05_T/BTROHT05_T3/wgs/preprocessing/markduplicates/BTROHT05_T3.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "171G",
+                  "created": "2024-10-04 19:16:25 +0200",
+                  "epoch": 1728062185
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -1315,7 +1557,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT05/BTROHT05_germline/wgs/preprocessing/markduplicates/BTROHT05_germline.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "168G",
+                  "created": "2025-11-13 07:01:35 +0100",
+                  "epoch": 1763013695
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -1367,7 +1623,31 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT06/BTROHT06/BTROHT06_T/BTROHT06_T5/low_pass_wgs/bwa/BTROHT06_T5_filter_none_processed.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "4.1G",
+                  "created": "2024-02-09 13:25:35 +0100",
+                  "epoch": 1707481535
+                }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT06/BTROHT06/BTROHT06_T/BTROHT06_T5/low_pass_wgs/bwa/BTROHT06_T5_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.6G",
+                  "created": "2025-11-16 18:02:30 +0100",
+                  "epoch": 1763312550
+                }
+              }
+            ]
+          }
         },
         "wgs": {
           "raw_sequence": [
@@ -1428,7 +1708,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT06/BTROHT06/BTROHT06_T/BTROHT06_T5/wgs/preprocessing/markduplicates/BTROHT06_T5.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "162G",
+                  "created": "2024-10-04 17:56:42 +0200",
+                  "epoch": 1728057402
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -1497,7 +1791,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT06/BTROHT06_germline/wgs/preprocessing/markduplicates/BTROHT06_germline.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "131G",
+                  "created": "2025-11-13 04:43:01 +0100",
+                  "epoch": 1763005381
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -1530,7 +1838,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT07/BTROHT07/BTROHT07_T/BTROHT07_T4/low_pass_wgs/bwa/BTROHT07_T4_filter_none_processed.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.9G",
+                  "created": "2024-04-10 16:26:54 +0200",
+                  "epoch": 1712759214
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -1578,7 +1900,31 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT07/BTROHT07/BTROHT07_T/BTROHT07_T5/low_pass_wgs/bwa/BTROHT07_T5_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.4G",
+                  "created": "2025-11-16 18:00:53 +0100",
+                  "epoch": 1763312453
+                }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT07/BTROHT07/BTROHT07_T/BTROHT07_T5/BTROHT07_T5/low_pass_wgs/bwa/BTROHT07_T5_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "5.4G",
+                  "created": "2024-09-20 18:37:18 +0200",
+                  "epoch": 1726850238
+                }
+              }
+            ]
+          }
         },
         "wgs": {
           "raw_sequence": [
@@ -1679,7 +2025,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT07/BTROHT07/BTROHT07_T/BTROHT07_T5/wgs/preprocessing/markduplicates/BTROHT07_T5.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "118G",
+                  "created": "2026-01-10 07:09:11 +0100",
+                  "epoch": 1768025351
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -1712,7 +2072,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT07/BTROHT07_germline/wgs/preprocessing/markduplicates/BTROHT07_germline.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "50G",
+                  "created": "2025-10-16 11:23:25 +0200",
+                  "epoch": 1760606605
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -1745,7 +2119,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT08/BTROHT08/BTROHT08_T/BTROHT08_T2/low_pass_wgs/bwa/BTROHT08_T2_filter_none_processed.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "816M",
+                  "created": "2024-04-10 16:24:42 +0200",
+                  "epoch": 1712759082
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -1772,7 +2160,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT08/BTROHT08/BTROHT08_T/BTROHT08_T4/BTROHT08_T4/low_pass_wgs/bwa/BTROHT08_T4_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "2.4G",
+                  "created": "2024-09-20 18:35:17 +0200",
+                  "epoch": 1726850117
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -1820,7 +2222,31 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT09/BTROHT09/BTROHT09_T/BTROHT09_T3/low_pass_wgs/bwa/BTROHT09_T3_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.2G",
+                  "created": "2025-11-16 18:00:12 +0100",
+                  "epoch": 1763312412
+                }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT09/BTROHT09/BTROHT09_T/BTROHT09_T3/BTROHT09_T3/low_pass_wgs/bwa/BTROHT09_T3_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "4.4G",
+                  "created": "2024-09-20 18:37:25 +0200",
+                  "epoch": 1726850245
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -1868,7 +2294,31 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT10/BTROHT10/BTROHT10_T/BTROHT10_T5/low_pass_wgs/bwa/BTROHT10_T5_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.6G",
+                  "created": "2025-11-16 18:02:02 +0100",
+                  "epoch": 1763312522
+                }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT10/BTROHT10/BTROHT10_T/BTROHT10_T5/BTROHT10_T5/low_pass_wgs/bwa/BTROHT10_T5_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "4.1G",
+                  "created": "2024-09-20 18:36:57 +0200",
+                  "epoch": 1726850217
+                }
+              }
+            ]
+          }
         },
         "wgs": {
           "raw_sequence": [
@@ -1969,7 +2419,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT10/BTROHT10/BTROHT10_T/BTROHT10_T5/wgs/preprocessing/markduplicates/BTROHT10_T5.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "122G",
+                  "created": "2026-01-10 08:00:30 +0100",
+                  "epoch": 1768028430
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -2078,7 +2542,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT10/BTROHT10_germline/wgs/preprocessing/markduplicates/BTROHT10_germline.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "48G",
+                  "created": "2026-01-09 13:34:09 +0100",
+                  "epoch": 1767962049
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -2130,7 +2608,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT11/BTROHT11/BTROHT11_T/BTROHT11_T2/low_pass_wgs/bwa/BTROHT11_T2_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.5G",
+                  "created": "2025-11-16 18:01:24 +0100",
+                  "epoch": 1763312484
+                }
+              }
+            ]
+          }
         },
         "wgs": {
           "raw_sequence": [
@@ -2231,7 +2723,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT11/BTROHT11/BTROHT11_T/BTROHT11_T2/wgs/preprocessing/markduplicates/BTROHT11_T2.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "108G",
+                  "created": "2026-01-10 06:13:11 +0100",
+                  "epoch": 1768021991
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -2340,7 +2846,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT11/BTROHT11_germline/wgs/preprocessing/markduplicates/BTROHT11_germline.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "50G",
+                  "created": "2026-01-09 14:02:10 +0100",
+                  "epoch": 1767963730
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -2392,7 +2912,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT12/BTROHT12/BTROHT12_T/BTROHT12_T2/low_pass_wgs/bwa/BTROHT12_T2_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.6G",
+                  "created": "2025-11-16 18:01:47 +0100",
+                  "epoch": 1763312507
+                }
+              }
+            ]
+          }
         },
         "wgs": {
           "raw_sequence": [
@@ -2493,7 +3027,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT12/BTROHT12/BTROHT12_T/BTROHT12_T2/wgs/preprocessing/markduplicates/BTROHT12_T2.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "151G",
+                  "created": "2026-01-10 10:39:59 +0100",
+                  "epoch": 1768037999
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -2602,7 +3150,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT12/BTROHT12_germline/wgs/preprocessing/markduplicates/BTROHT12_germline.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "57G",
+                  "created": "2026-01-09 14:34:56 +0100",
+                  "epoch": 1767965696
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -2662,7 +3224,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT13/BTROHT13/BTROHT13_T/BTROHT13_T6/low_pass_wgs/bwa/BTROHT13_T6_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "918M",
+                  "created": "2025-11-16 17:59:31 +0100",
+                  "epoch": 1763312371
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -2695,7 +3271,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT14/BTROHT14/BTROHT14_T/BTROHT14_T8/low_pass_wgs/bwa/BTROHT14_T8_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.4G",
+                  "created": "2025-11-16 18:00:42 +0100",
+                  "epoch": 1763312442
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -2728,7 +3318,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT16/BTROHT16/BTROHT16_T/BTROHT16_T1/low_pass_wgs/bwa/BTROHT16_T1_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "2.3G",
+                  "created": "2025-11-16 18:04:34 +0100",
+                  "epoch": 1763312674
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -2761,7 +3365,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT17/BTROHT17/BTROHT17_T/BTROHT17_T1/low_pass_wgs/bwa/BTROHT17_T1_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.8G",
+                  "created": "2025-11-16 18:03:06 +0100",
+                  "epoch": 1763312586
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -2794,7 +3412,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT17/BTROHT17_germline/wgs/preprocessing/markduplicates/BTROHT17_germline.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "52G",
+                  "created": "2025-10-17 18:35:30 +0200",
+                  "epoch": 1760718930
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -2862,7 +3494,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT18/BTROHT18/BTROHT18_T/BTROHT18_T5/wgs/preprocessing/markduplicates/BTROHT18_T5.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "129G",
+                  "created": "2025-12-17 03:18:44 +0100",
+                  "epoch": 1765937924
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -2895,7 +3541,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT18/BTROHT18_germline/wgs/preprocessing/markduplicates/BTROHT18_germline.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "48G",
+                  "created": "2025-10-16 11:07:19 +0200",
+                  "epoch": 1760605639
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -2963,7 +3623,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT19/BTROHT19/BTROHT19_T/BTROHT19_T2/wgs/preprocessing/markduplicates/BTROHT19_T2.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "102G",
+                  "created": "2025-12-17 18:10:28 +0100",
+                  "epoch": 1765991428
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -2996,7 +3670,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT19/BTROHT19_germline/wgs/preprocessing/markduplicates/BTROHT19_germline.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "40G",
+                  "created": "2025-10-16 10:22:25 +0200",
+                  "epoch": 1760602945
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -3050,7 +3738,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT20/BTROHT20_core_PTPRZ1+/low_pass_wgs/bwa/BTROHT20_core_PTPRZ1+_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "5.6G",
+                  "created": "2026-01-17 00:54:25 +0100",
+                  "epoch": 1768607665
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -3104,7 +3806,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT20/BTROHT20_core_PTPRZ1++/low_pass_wgs/bwa/BTROHT20_core_PTPRZ1++_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "5.9G",
+                  "created": "2026-01-17 01:06:19 +0100",
+                  "epoch": 1768608379
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -3158,7 +3874,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-ROVIGO/BTROHT20/BTROHT20_core_PTPRZ1-/low_pass_wgs/bwa/BTROHT20_core_PTPRZ1-_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "5.0G",
+                  "created": "2026-01-17 00:57:39 +0100",
+                  "epoch": 1768607859
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -3885,6 +4615,26 @@
                   "created": "2023-10-06 09:49:23 +0200",
                   "epoch": 1696578563
                 }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C001/INT_C001/INT_C001_T/INT_C001_T1/wes_new/preprocessing/recalibrated/INT_C001_T1.recal.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "4.3G",
+                  "created": "2024-03-28 13:18:39 +0100",
+                  "epoch": 1711628319
+                }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C001/INT_C001/INT_C001_T/INT_C001_T1/wes_new/preprocessing/markduplicates/INT_C001_T1.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "3.7G",
+                  "created": "2024-03-28 12:25:33 +0100",
+                  "epoch": 1711625133
+                }
               }
             ]
           }
@@ -3964,6 +4714,25 @@
               }
             ]
           }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_037",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_037_S11_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_037_S11_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -4042,6 +4811,40 @@
               }
             ]
           }
+        },
+        "wes": {
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C002/INT_C002/INT_C002_T/INT_C002_T2/wes/preprocessing/markduplicates/INT_C002_T2.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "9.6G",
+                  "created": "2026-02-03 12:08:19 +0100",
+                  "epoch": 1770116899
+                }
+              }
+            ]
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_069",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_069_S1_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_069_S1_L001_R2_001.fastq.gz",
+                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_069_S1_L001_R3_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -4181,6 +4984,49 @@
               }
             ]
           }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_061",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_061_S29_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_061_S29_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C006/INT_C006/INT_C006_T/INT_C006_T1/wes/preprocessing/recalibrated/INT_C006_T1.recal.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "3.0G",
+                  "created": "2024-04-03 12:18:31 +0200",
+                  "epoch": 1712139511
+                }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C006/INT_C006/INT_C006_T/INT_C006_T1/wes/preprocessing/markduplicates/INT_C006_T1.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "2.3G",
+                  "created": "2024-04-03 11:40:20 +0200",
+                  "epoch": 1712137220
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -4234,6 +5080,25 @@
               }
             ]
           }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_038",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_038_S12_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_038_S12_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -5061,6 +5926,25 @@
               }
             ]
           }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_062",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_062_S30_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_062_S30_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -5249,7 +6133,25 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_070",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_070_S2_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_070_S2_L001_R2_001.fastq.gz",
+                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_070_S2_L001_R3_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -5326,6 +6228,25 @@
               }
             ]
           }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_039",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_039_S13_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_039_S13_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -5899,7 +6820,24 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_063",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_063_S31_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_063_S31_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -6179,7 +7117,25 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_071",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_071_S3_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_071_S3_L001_R2_001.fastq.gz",
+                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_071_S3_L001_R3_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -6301,6 +7257,25 @@
               }
             ]
           }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_040",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_040_S14_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_040_S14_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -6695,6 +7670,23 @@
           }
         },
         "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_064",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_064_S32_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_064_S32_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
           "processed_data": {
             "bam": [
               {
@@ -6907,7 +7899,25 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_072",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_072_S4_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_072_S4_L001_R2_001.fastq.gz",
+                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_072_S4_L001_R3_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -6984,6 +7994,25 @@
               }
             ]
           }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_041",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_041_S15_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_041_S15_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -7054,7 +8083,24 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_065",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_065_S33_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_065_S33_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -7223,7 +8269,25 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_073",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_073_S5_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_073_S5_L001_R2_001.fastq.gz",
+                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_073_S5_L001_R3_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -7300,6 +8364,25 @@
               }
             ]
           }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_042",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_042_S16_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_042_S16_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -7893,7 +8976,24 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_066",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_066_S34_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_066_S34_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -7970,6 +9070,25 @@
               }
             ]
           }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_043",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_043_S17_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_043_S17_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -8138,7 +9257,25 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_074",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_074_S6_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_074_S6_L001_R2_001.fastq.gz",
+                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_074_S6_L001_R3_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -8219,6 +9356,25 @@
               }
             ]
           }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_044",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_044_S18_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_044_S18_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -8532,6 +9688,16 @@
                   "created": "2023-07-28 14:16:54 +0200",
                   "epoch": 1690546614
                 }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C030/INT_C030/INT_C030_N/INT_C030_N1/low_pass_wgs/bwa/INT_C030_N1_p3.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.5G",
+                  "created": "2025-11-19 11:58:17 +0100",
+                  "epoch": 1763549897
+                }
               }
             ]
           }
@@ -8827,7 +9993,25 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_075",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_075_S7_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_075_S7_L001_R2_001.fastq.gz",
+                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_075_S7_L001_R3_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -8904,6 +10088,25 @@
               }
             ]
           }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_045",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_045_S19_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_045_S19_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -8986,7 +10189,25 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_077",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L002": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_077_S9_L002_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_077_S9_L002_R2_001.fastq.gz",
+                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_077_S9_L002_R3_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -9309,7 +10530,25 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_076",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_076_S8_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_076_S8_L001_R2_001.fastq.gz",
+                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_076_S8_L001_R3_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -9408,6 +10647,25 @@
               }
             ]
           }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_046",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_046_S20_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_046_S20_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -9769,7 +11027,25 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_078",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L002": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_078_S10_L002_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_078_S10_L002_R2_001.fastq.gz",
+                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_078_S10_L002_R3_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -9895,6 +11171,25 @@
               }
             ]
           }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_047",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_047_S21_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_047_S21_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -10010,7 +11305,24 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_067",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_067_S35_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_067_S35_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -10093,7 +11405,25 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_079",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L002": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_079_S11_L002_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_079_S11_L002_R2_001.fastq.gz",
+                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_079_S11_L002_R3_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -10143,6 +11473,39 @@
                   "size": "74G",
                   "created": "2024-10-22 22:00:57 +0200",
                   "epoch": 1729627257
+                }
+              }
+            ]
+          }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_048",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_048_S22_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_048_S22_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C035/INT_C035_germline/wes/preprocessing/markduplicates/INT_C035_germline.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "1.8G",
+                  "created": "2026-02-03 14:18:29 +0100",
+                  "epoch": 1770124709
                 }
               }
             ]
@@ -10217,7 +11580,24 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_068",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_068_S36_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_068_S36_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -10300,7 +11680,25 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_080",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L002": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_080_S12_L002_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_080_S12_L002_R2_001.fastq.gz",
+                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_080_S12_L002_R3_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -10354,6 +11752,25 @@
               }
             ]
           }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_049",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_049_S23_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_049_S23_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -10539,7 +11956,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C038/INT_C038/INT_C038_T/INT_C038_T1/wgs/preprocessing/markduplicates/INT_C038_T1_p6.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "99G",
+                  "created": "2026-01-29 17:40:43 +0100",
+                  "epoch": 1769704843
+                }
+              }
+            ]
+          }
         },
         "wes": {
           "processed_data": {
@@ -10565,7 +11996,24 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_059",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_059_S27_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_059_S27_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -10806,7 +12254,25 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_081",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L002": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_081_S13_L002_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_081_S13_L002_R2_001.fastq.gz",
+                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_081_S13_L002_R3_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -10928,6 +12394,25 @@
               }
             ]
           }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_050",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_050_S24_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_050_S24_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -11259,6 +12744,32 @@
             ]
           }
         },
+        "wes": {
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C042/INT_C042_T1_p4_organoids/wes/preprocessing/recalibrated/T1_p4_organoids/T1_p4_organoids.recal.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "3.0G",
+                  "created": "2023-10-06 09:47:33 +0200",
+                  "epoch": 1696578453
+                }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C042/INT_C042_T1_p4_organoids/wes/preprocessing/markduplicates/T1_p4_organoids/T1_p4_organoids.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "2.7G",
+                  "created": "2023-10-06 09:47:59 +0200",
+                  "epoch": 1696578479
+                }
+              }
+            ]
+          }
+        },
         "wgs": {
           "processed_data": {
             "bam": [
@@ -11270,6 +12781,16 @@
                   "size": "11G",
                   "created": "2025-02-07 16:09:18 +0100",
                   "epoch": 1738940958
+                }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C042/INT_C042/INT_C042_T/INT_C042_T1/wgs/preprocessing/markduplicates/INT_C042_T1.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "11G",
+                  "created": "2024-12-14 04:15:35 +0100",
+                  "epoch": 1734146135
                 }
               }
             ]
@@ -11484,7 +13005,25 @@
                 }
               }
             ]
-          }
+          },
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_082",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L002": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_082_S14_L002_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_082_S14_L002_R2_001.fastq.gz",
+                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_082_S14_L002_R3_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -11557,6 +13096,25 @@
               }
             ]
           }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_051",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_051_S25_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_051_S25_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -11865,11 +13423,38 @@
                   "created": "2025-02-07 16:07:15 +0100",
                   "epoch": 1738940835
                 }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C044/INT_C044/INT_C044_T/INT_C044_T1/wgs/preprocessing/markduplicates/INT_C044_T1.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "1.9G",
+                  "created": "2024-12-14 03:51:53 +0100",
+                  "epoch": 1734144713
+                }
               }
             ]
           }
         },
         "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_060",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_060_S28_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_060_S28_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
           "processed_data": {
             "bam": [
               {
@@ -11957,6 +13542,17 @@
                       "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_083_S15_L002_R3_001.fastq.gz"
                     }
                   }
+                },
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L002": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_083_S15_L002_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_083_S15_L002_R2_001.fastq.gz",
+                      "R3": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_083_S15_L002_R3_001.fastq.gz"
+                    }
+                  }
                 }
               ]
             }
@@ -11981,6 +13577,26 @@
                   "size": "1.7G",
                   "created": "2023-09-07 01:37:23 +0200",
                   "epoch": 1694043443
+                }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C044/INT_C044/INT_C044_T/INT_C044_T3/wes/preprocessing/recalibrated/INT_C044_T2.recal.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "9.6G",
+                  "created": "2024-03-29 20:34:03 +0100",
+                  "epoch": 1711740843
+                }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C044/INT_C044/INT_C044_T/INT_C044_T3/wes/preprocessing/markduplicates/INT_C044_T2.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "8.9G",
+                  "created": "2024-03-29 18:37:45 +0100",
+                  "epoch": 1711733865
                 }
               }
             ]
@@ -12186,6 +13802,25 @@
               }
             ]
           }
+        },
+        "wes": {
+          "raw_sequence": [
+            {
+              "gf_id": "LAZ_052",
+              "fastqs": [
+                {
+                  "gf_project": "RITM0022537",
+                  "run": "230808_A01481_0089_AHGCW2DM",
+                  "files": {
+                    "L001": {
+                      "R1": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_052_S26_L001_R1_001.fastq.gz",
+                      "R2": "/group/sottoriva/00-RAW_DATA/SEQUENCING_DATA/2022-MAYA_MISSONI_VALENTINO/2023_04_04_RITM0022537/RITM0022537/LAZ_052_S26_L001_R2_001.fastq.gz"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -12498,7 +14133,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C047/INT_C047/INT_C047_T/INT_C047_T1/wgs/preprocessing/markduplicates/INT_C047_T1.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "165G",
+                  "created": "2025-05-29 06:51:54 +0200",
+                  "epoch": 1748494314
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -13150,6 +14799,16 @@
                   "created": "2024-04-21 09:51:25 +0200",
                   "epoch": 1713685885
                 }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C048/INT_C048/INT_C048_T/INT_C048_T1/wgs/preprocessing/markduplicates/INT_C048_T1.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "178G",
+                  "created": "2025-06-06 23:24:46 +0200",
+                  "epoch": 1749245086
+                }
               }
             ]
           }
@@ -13758,6 +15417,16 @@
                   "created": "2025-02-02 21:55:28 +0100",
                   "epoch": 1738529728
                 }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C049/INT_C049/INT_C049_T/INT_C049_T1/wgs/preprocessing/markduplicates/INT_C049_T1.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "168G",
+                  "created": "2025-05-29 06:29:57 +0200",
+                  "epoch": 1748492997
+                }
               }
             ]
           }
@@ -14356,7 +16025,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C052/INT_C052/INT_C052_T/INT_C052_T1/wgs/preprocessing/markduplicates/INT_C052_T1.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "192G",
+                  "created": "2025-05-29 10:24:04 +0200",
+                  "epoch": 1748507044
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -15585,6 +17268,16 @@
                   "size": "158G",
                   "created": "2025-12-04 04:18:06 +0100",
                   "epoch": 1764818286
+                }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C061/INT_C061_T1_p9_organoids/wgs/preprocessing/markduplicates/INT_C061_T1.md.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://github.com/nf-core/sarek",
+                "metadata": {
+                  "size": "158G",
+                  "created": "2025-06-06 22:03:46 +0200",
+                  "epoch": 1749240226
                 }
               }
             ]
@@ -24112,7 +25805,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C105/INT_C105/INT_C105_T/INT_C105_T1_p1_cysticPDO/low_pass_wgs/bwa/INT_C105_T1_p1_cysticPDO_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.7G",
+                  "created": "2024-10-31 18:18:49 +0100",
+                  "epoch": 1730395129
+                }
+              }
+            ]
+          }
         }
       }
     },
@@ -27738,7 +29445,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C115/INT_C115/INT_C115_R1T/INT_C115_R1T1/low_pass_wgs/bwa/INT_C115_R1T1_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "2.2G",
+                  "created": "2024-10-31 18:20:35 +0100",
+                  "epoch": 1730395235
+                }
+              }
+            ]
+          }
         },
         "wgs": {
           "raw_sequence": [
@@ -27860,7 +29581,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/COLT01_010/INT_C115/INT_C115_R1T/INT_C115_R1T2/low_pass_wgs/bwa/INT_C115_R1T2_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.3G",
+                  "created": "2024-09-20 18:34:14 +0200",
+                  "epoch": 1726850054
+                }
+              }
+            ]
+          }
         },
         "wgs": {
           "raw_sequence": [
@@ -30335,7 +32070,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C128/INT_C128/INT_C128_T/INT_C128_T1/low_pass_wgs/bwa/INT_C128_T1_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.5G",
+                  "created": "2025-05-06 17:48:28 +0200",
+                  "epoch": 1746546508
+                }
+              }
+            ]
+          }
         },
         "wgs": {
           "raw_sequence": [
@@ -32542,7 +34291,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C135/INT_C135/INT_C135_T/INT_C135_T1/low_pass_wgs/bwa/INT_C135_T1_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.5G",
+                  "created": "2025-05-06 17:48:08 +0200",
+                  "epoch": 1746546488
+                }
+              }
+            ]
+          }
         },
         "wgs": {
           "raw_sequence": [
@@ -32893,7 +34656,31 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C137/INT_C137/INT_C137_T/INT_C137_T1/low_pass_wgs/bwa/INT_C137_T1_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "2.0G",
+                  "created": "2025-03-26 15:35:09 +0100",
+                  "epoch": 1742999709
+                }
+              },
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C137/INT_C137/INT_C137_T/INT_C137_T1/low_pass_wgs_07_05_2025/low_pass_wgs/bwa/INT_C137_T1_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.8G",
+                  "created": "2025-05-06 17:49:22 +0200",
+                  "epoch": 1746546562
+                }
+              }
+            ]
+          }
         },
         "wgs": {
           "raw_sequence": [
@@ -33167,7 +34954,21 @@
                 }
               ]
             }
-          ]
+          ],
+          "processed_data": {
+            "bam": [
+              {
+                "file_path": "/group/sottoriva/00-PROCESSED_DATA/2023-INT/INT_C139/INT_C139/INT_C139_T/INT_C139_T1/low_pass_wgs/bwa/INT_C139_T1_filter_none_600.bam",
+                "file_type": "bam",
+                "pipeline_url": "https://gitlab.fht.org/sottoriva-lab/lp-wgs",
+                "metadata": {
+                  "size": "1.8G",
+                  "created": "2025-05-06 17:49:22 +0200",
+                  "epoch": 1746546562
+                }
+              }
+            ]
+          }
         },
         "wgs": {
           "raw_sequence": [

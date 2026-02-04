@@ -1,159 +1,502 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>JSON DB Viewer</title>
-
-  <!-- jsoneditor via CDN -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsoneditor@10.1.3/dist/jsoneditor.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/jsoneditor@10.1.3/dist/jsoneditor.min.js"></script>
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Working CON DB - Sample Browser</title>
   <style>
-    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background-color: #f8f9fa; }
-    header { padding: 10px 12px; border-bottom: 1px solid #ddd; display: flex; gap: 10px; align-items: center; background-color: #fff; }
-    #editor { height: calc(100vh - 52px); }
-    .hint { color: #555; font-size: 14px; }
-    button { padding: 6px 10px; cursor: pointer; border: 1px solid #ccc; background-color: #f0f0f0; border-radius: 4px; }
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --line: #d3d9e6;
+      --text: #1d2433;
+      --muted: #5b667d;
+      --accent: #0d6d7b;
+      --accent-soft: #e6f3f5;
+      --warn: #9c2f2f;
+      --space-1: 6px;
+      --space-2: 10px;
+      --space-3: 14px;
+      --space-4: 20px;
+      --radius: 10px;
+    }
 
-    #dashboard {
-      padding: 16px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      background-color: #e9ecef;
-      border-bottom: 1px solid #ddd;
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% -10%, #e7efff 0%, var(--bg) 45%, #f8fbff 100%);
+      min-height: 100vh;
     }
-    .stat-card {
-      background-color: #fff;
-      padding: 16px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      flex-grow: 1;
+
+    .shell { max-width: 1280px; margin: 0 auto; padding: var(--space-4); }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 4px 18px rgba(16, 24, 40, 0.06); }
+    header.card { padding: var(--space-4); display: grid; gap: var(--space-3); margin-bottom: var(--space-3); }
+    .title-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); flex-wrap: wrap; }
+    h1 { margin: 0; font-size: 1.25rem; }
+    .controls { display: grid; grid-template-columns: 1fr auto; gap: var(--space-2); }
+    .controls .row { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; }
+    input[type="search"] { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font: inherit; }
+    input[type="file"], button { font: inherit; }
+    button { border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 8px 12px; cursor: pointer; }
+    button:hover { border-color: #adb7ce; }
+    .hint, .status { color: var(--muted); font-size: 0.9rem; }
+    .status.error { color: var(--warn); }
+    .badge { border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; font-size: 0.78rem; color: var(--muted); background: #fff; white-space: nowrap; }
+
+    main.app { display: grid; grid-template-columns: minmax(320px, 35%) 1fr; gap: var(--space-3); min-height: 72vh; }
+    .pane { min-height: 0; display: flex; flex-direction: column; }
+    .pane-head { padding: var(--space-3); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+    .pane-body { padding: var(--space-2); overflow: auto; }
+
+    .item { border: 1px solid transparent; border-radius: 8px; padding: 9px; cursor: pointer; margin-bottom: 6px; }
+    .item:hover { background: #f5f8fe; border-color: #e0e6f3; }
+    .item.active { background: var(--accent-soft); border-color: #bde1e6; }
+    .item .top { display: flex; justify-content: space-between; gap: var(--space-2); }
+    .item .meta { margin-top: 4px; color: var(--muted); font-size: 0.85rem; display: flex; justify-content: space-between; gap: var(--space-2); }
+    .count { font-variant-numeric: tabular-nums; }
+
+    .kv { display: grid; grid-template-columns: minmax(140px, 210px) 1fr; gap: 6px 12px; margin-bottom: var(--space-3); }
+    .k { color: var(--muted); }
+    .v { word-break: break-word; }
+    details { margin-bottom: var(--space-3); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: #fbfcff; }
+    summary { cursor: pointer; font-weight: 600; }
+    pre { margin: 8px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.85rem; }
+    mark { background: #ffea9a; padding: 0; border-radius: 2px; }
+
+    @media (max-width: 920px) {
+      .shell { padding: var(--space-3); }
+      .controls { grid-template-columns: 1fr; }
+      main.app { grid-template-columns: 1fr; min-height: unset; }
+      .pane { min-height: 280px; }
+      .kv { grid-template-columns: 1fr; }
     }
-    .stat-card h3 { margin: 0 0 8px 0; font-size: 16px; color: #555; }
-    .stat-card .count { font-size: 28px; font-weight: bold; }
-    .stat-card .breakdown { font-size: 14px; line-height: 1.6; }
   </style>
 </head>
 <body>
+  <div class="shell">
+    <header class="card">
+      <div class="title-row">
+        <h1>Working CON DB Browser</h1>
+        <span id="totalCount" class="badge">0 total</span>
+      </div>
 
-  <div id="dashboard">
-    <div class="stat-card">
-      <h3>Total Patients</h3>
-      <div id="patient-count" class="count">...</div>
-    </div>
-    <div class="stat-card">
-      <h3>Total Samples</h3>
-      <div id="sample-count" class="count">...</div>
-    </div>
-    <div class="stat-card">
-      <h3>Aligned Files by Type (.bam)</h3>
-      <div id="aligned-files-breakdown" class="breakdown">...</div>
-    </div>
-    <div class="stat-card">
-      <h3>Samples by Type</h3>
-      <div id="type-breakdown" class="breakdown">...</div>
-    </div>
-    <div class="stat-card">
-      <h3>Samples by Project</h3>
-      <div id="project-breakdown" class="breakdown">...</div>
-    </div>
+      <div class="controls">
+        <input id="queryInput" type="search" placeholder="Search or token query (sample:..., patient:..., project:..., gf:..., run:..., path:...)">
+        <div class="row">
+          <input id="fileInput" type="file" accept="application/json,.json">
+          <button id="clearBtn" type="button">Clear</button>
+        </div>
+      </div>
+
+      <div class="hint">Terms are ANDed. Tokens: <code>sample:</code>, <code>patient:</code>, <code>project:</code>, <code>type:</code>, <code>seq:</code>, <code>gf:</code>, <code>gfsample:</code>, <code>run:</code>, <code>path:</code>, <code>bam:</code>.</div>
+      <div id="status" class="status">Load <code>working_con_db_sample100.json</code> to begin.</div>
+    </header>
+
+    <main class="app">
+      <section id="detailSection" class="pane card">
+        <div class="pane-head">
+          <strong>Samples</strong>
+          <span id="visibleCount" class="badge">0 visible</span>
+        </div>
+        <div id="listPane" class="pane-body"></div>
+      </section>
+
+      <section class="pane card">
+        <div class="pane-head">
+          <strong>Details</strong>
+          <button id="copySampleBtn" type="button">Copy Sample ID</button>
+        </div>
+        <div id="detailPane" class="pane-body">
+          <p class="status">Select a sample from the left pane.</p>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <header>
-    <button id="loadBtn">Load db.json</button>
-    <span class="hint">Pick a JSON file to browse, expand/collapse, Ctrl/Cmd+F for search.</span>
-    <input id="file" type="file" accept=".json,application/json" />
-  </header>
-
-  <div id="editor"></div>
-
   <script>
-    const container = document.getElementById('editor');
-    const editor = new JSONEditor(container, {
-      mode: 'tree',
-      modes: ['tree', 'view', 'code'],
-      search: true,
-      navigationBar: true,
-      statusBar: true
-    });
+    const state = {
+      samples: [],
+      filtered: [],
+      selectedId: null,
+      query: ""
+    };
 
-    // --- DOM elements ---
-    const patientCountEl = document.getElementById('patient-count');
-    const sampleCountEl = document.getElementById('sample-count');
-    const alignedFilesBreakdownEl = document.getElementById('aligned-files-breakdown');
-    const typeBreakdownEl = document.getElementById('type-breakdown');
-    const projectBreakdownEl = document.getElementById('project-breakdown');
+      const el = {
+      fileInput: document.getElementById("fileInput"),
+      queryInput: document.getElementById("queryInput"),
+      clearBtn: document.getElementById("clearBtn"),
+      copySampleBtn: document.getElementById("copySampleBtn"),
+      status: document.getElementById("status"),
+      totalCount: document.getElementById("totalCount"),
+      visibleCount: document.getElementById("visibleCount"),
+      listPane: document.getElementById("listPane"),
+      detailPane: document.getElementById("detailPane"),
+      detailSection: document.getElementById("detailSection")
+    };
 
-    function updateDashboard(jsonData) {
-      if (!jsonData || !jsonData.samples) {
-        patientCountEl.textContent = 'N/A';
-        sampleCountEl.textContent = 'N/A';
-        alignedFilesBreakdownEl.innerHTML = 'N/A';
-        typeBreakdownEl.innerHTML = 'N/A';
-        projectBreakdownEl.innerHTML = 'N/A';
-        return;
-      }
-      const samples = Object.values(jsonData.samples);
-      const patientIds = new Set(samples.map(s => s.patient));
-      const typeCounts = samples.reduce((acc, s) => { acc[s.sample_type] = (acc[s.sample_type] || 0) + 1; return acc; }, {});
-      const projectCounts = samples.reduce((acc, s) => { acc[s.sottorivalab_project] = (acc[s.sottorivalab_project] || 0) + 1; return acc; }, {});
+    el.fileInput.addEventListener("change", onFileLoad);
+    el.queryInput.addEventListener("input", onQueryInput);
+    el.clearBtn.addEventListener("click", clearViewer);
+    el.copySampleBtn.addEventListener("click", copySelectedSampleId);
 
-      const bamCountsByType = {};
-      function findBamsRecursive(obj) {
-        let count = 0;
-        for (const key in obj) {
-          if (typeof obj[key] === 'string' && obj[key] && obj[key].endsWith('.bam')) {
-            count++;
-          } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-            count += findBamsRecursive(obj[key]);
-          }
-        }
-        return count;
-      }
-
-      for (const sample of samples) {
-        if (sample.seq) {
-          for (const seqType in sample.seq) {
-            const count = findBamsRecursive(sample.seq[seqType]);
-            if (count > 0) {
-              bamCountsByType[seqType] = (bamCountsByType[seqType] || 0) + count;
-            }
-          }
-        }
-      }
-
-      patientCountEl.textContent = patientIds.size;
-      sampleCountEl.textContent = samples.length;
-      alignedFilesBreakdownEl.innerHTML = Object.entries(bamCountsByType).map(([key, val]) => `<strong>${key}:</strong> ${val}`).join('<br>') || 'None found.';
-      typeBreakdownEl.innerHTML = Object.entries(typeCounts).map(([key, val]) => `<strong>${key}:</strong> ${val}`).join('<br>');
-      projectBreakdownEl.innerHTML = Object.entries(projectCounts).map(([key, val]) => `<strong>${key}:</strong> ${val}`).join('<br>');
+    function setStatus(message, isError) {
+      el.status.textContent = message;
+      el.status.classList.toggle("error", Boolean(isError));
     }
 
-    const fileInput = document.getElementById('file');
-    document.getElementById('loadBtn').addEventListener('click', () => fileInput.click());
-
-    async function loadJson(file) {
+    async function onFileLoad(event) {
+      const file = event.target.files && event.target.files[0];
       if (!file) return;
       try {
-        const text = await file.text();
-        const json = JSON.parse(text);
-        editor.set(json);
-        updateDashboard(json);
-        editor.expand(path => path.length < 2);
+        const parsed = JSON.parse(await file.text());
+        const samplesObj = parsed && parsed.samples;
+        if (!samplesObj || typeof samplesObj !== "object" || Array.isArray(samplesObj)) {
+          throw new Error("Expected root object with 'samples' dictionary.");
+        }
+        state.samples = Object.entries(samplesObj).map(([sampleId, rec]) => normalizeSample(sampleId, rec));
+        state.query = "";
+        el.queryInput.value = "";
+        applyFilters();
+        setStatus("Loaded " + file.name + " (" + state.samples.length + " samples).");
       } catch (err) {
-        alert("Could not load JSON: " + err);
-        editor.set({ error: "Could not load or parse the JSON file.", details: err.message });
+        setStatus("Failed to parse JSON: " + err.message, true);
       }
     }
 
-    fileInput.addEventListener('change', async (e) => {
-      loadJson(e.target.files?.[0]);
-    });
+    function normalizeSample(sampleId, rec) {
+      const seq = (rec && rec.seq && typeof rec.seq === "object") ? rec.seq : {};
+      const seqTypes = Object.keys(seq);
+      const gfIds = [];
+      const gfSampleIdsAll = [];
+      const runs = [];
+      const paths = [];
+      const bamPaths = [];
+      const seqSummary = {};
 
-    // Optional: show an empty structure hint
-    editor.set({ help: "Click 'Load db.json' to open your database file." });
+      seqTypes.forEach(function(seqType) {
+        const seqBlock = seq[seqType];
+        if (!seqBlock || typeof seqBlock !== "object") return;
+        const info = collectSeqInfo(seqBlock);
+        seqSummary[seqType] = info;
+        gfIds.push.apply(gfIds, info.gfProjects);
+        gfSampleIdsAll.push.apply(gfSampleIdsAll, info.gfSampleIds);
+        runs.push.apply(runs, info.runs);
+        paths.push.apply(paths, info.fastqPaths);
+        bamPaths.push.apply(bamPaths, info.bamPaths);
+      });
+
+      const tokenMap = {
+        sample: [sampleId],
+        patient: [rec && rec.patient],
+        project: [rec && rec.sottorivalab_project],
+        type: [rec && rec.sample_type],
+        seq: seqTypes,
+        gf: gfIds.concat(gfSampleIdsAll),
+        gfsample: gfSampleIdsAll,
+        run: runs,
+        path: paths,
+        bam: bamPaths
+      };
+
+      const searchParts = [];
+      Object.values(tokenMap).forEach(function(list) {
+        (list || []).forEach(function(v) {
+          if (v != null) searchParts.push(String(v).toLowerCase());
+        });
+      });
+
+      return {
+        sampleId: sampleId,
+        record: rec || {},
+        seqTypes: seqTypes,
+        gfIds: uniq(gfIds.concat(gfSampleIdsAll)),
+        runs: uniq(runs),
+        paths: uniq(paths),
+        bamPaths: uniq(bamPaths),
+        seqSummary: seqSummary,
+        tokenMap: tokenMap,
+        search: searchParts.join(" ")
+      };
+    }
+
+    function collectSeqInfo(seqBlock) {
+      const gfProjects = [];
+      const gfSampleIds = [];
+      const runs = [];
+      const fastqPaths = [];
+      const bamPaths = [];
+      const bamMeta = [];
+
+      const rawSeq = seqBlock.raw_sequence;
+      const rawItems = Array.isArray(rawSeq) ? rawSeq : (rawSeq && typeof rawSeq === "object" ? [rawSeq] : []);
+      rawItems.forEach(function(raw) {
+        if (!raw || typeof raw !== "object") return;
+        if (raw.gf_project_id) gfProjects.push(String(raw.gf_project_id));
+        if (raw.gf_id) gfSampleIds.push(String(raw.gf_id));
+        if (raw.run_id) runs.push(String(raw.run_id));
+        if (raw.run) runs.push(String(raw.run));
+
+        if (Array.isArray(raw.fastq_paths)) {
+          raw.fastq_paths.forEach(function(p) { if (typeof p === "string") fastqPaths.push(p); });
+        } else if (typeof raw.fastq_paths === "string") {
+          fastqPaths.push(raw.fastq_paths);
+        }
+
+        const fastqs = Array.isArray(raw.fastqs) ? raw.fastqs : [];
+        fastqs.forEach(function(fq) {
+          if (!fq || typeof fq !== "object") return;
+          if (fq.run) runs.push(String(fq.run));
+          if (fq.run_id) runs.push(String(fq.run_id));
+          if (fq.gf_project) gfProjects.push(String(fq.gf_project));
+          if (fq.gf_project_id) gfProjects.push(String(fq.gf_project_id));
+          const files = fq.files;
+          if (files && typeof files === "object") {
+            Object.values(files).forEach(function(lane) {
+              if (!lane || typeof lane !== "object") return;
+              Object.values(lane).forEach(function(pathVal) {
+                if (typeof pathVal === "string") fastqPaths.push(pathVal);
+              });
+            });
+          }
+        });
+      });
+
+      const processed = seqBlock.processed_data;
+      if (processed && typeof processed === "object") {
+        const bamValue = processed.bam;
+        const bamItems = Array.isArray(bamValue) ? bamValue : (bamValue && typeof bamValue === "object" ? [bamValue] : []);
+        bamItems.forEach(function(item) {
+          if (!item || typeof item !== "object") return;
+          const path = item.path || item.file_path || "";
+          const meta = item.metadata && typeof item.metadata === "object" ? item.metadata : {};
+          const creationDate = item.creation_date || item.created || meta.creation_date || meta.created || "";
+          const size = item.size || meta.size || "";
+          const epoch = item.epoch || meta.epoch || "";
+          const pipelineUrl = item.pipeline_url || item.url || meta.pipeline_url || "";
+          if (typeof path === "string" && path) bamPaths.push(path);
+          bamMeta.push({
+            path: path || "",
+            creation_date: creationDate || "",
+            size: size || "",
+            epoch: epoch || "",
+            url: pipelineUrl || ""
+          });
+        });
+      }
+
+      return {
+        gfProjects: uniq(gfProjects),
+        gfSampleIds: uniq(gfSampleIds),
+        runs: uniq(runs),
+        fastqPaths: uniq(fastqPaths),
+        bamPaths: uniq(bamPaths),
+        bamMeta: bamMeta
+      };
+    }
+
+    function onQueryInput(event) {
+      state.query = event.target.value || "";
+      applyFilters();
+    }
+
+    function parseQuery(query) {
+      const terms = String(query || "").trim().toLowerCase().split(/\s+/).filter(Boolean);
+      return terms.map(function(term) {
+        const i = term.indexOf(":");
+        if (i > 0 && i < term.length - 1) {
+          return { type: "token", field: term.slice(0, i), value: term.slice(i + 1) };
+        }
+        return { type: "text", value: term };
+      });
+    }
+
+    function sampleMatches(sample, parsedTerms) {
+      return parsedTerms.every(function(term) {
+        if (term.type === "text") {
+          return sample.search.indexOf(term.value) >= 0;
+        }
+        const values = sample.tokenMap[term.field];
+        if (!values || !values.length) return false;
+        return values.some(function(v) { return String(v).toLowerCase().indexOf(term.value) >= 0; });
+      });
+    }
+
+    function applyFilters() {
+      const parsed = parseQuery(state.query);
+      state.filtered = parsed.length ? state.samples.filter(function(s) { return sampleMatches(s, parsed); }) : state.samples.slice();
+      if (!state.filtered.some(function(s) { return s.sampleId === state.selectedId; })) {
+        state.selectedId = state.filtered[0] ? state.filtered[0].sampleId : null;
+      }
+      renderList();
+      renderDetails();
+      renderCounts();
+    }
+
+    function renderList() {
+      if (!state.filtered.length) {
+        el.listPane.innerHTML = '<p class="status">No matching samples.</p>';
+        return;
+      }
+      el.listPane.innerHTML = state.filtered.map(function(sample) {
+        const isActive = sample.sampleId === state.selectedId ? " active" : "";
+        const label = highlight(sample.sampleId, state.query);
+        const metaLeft = highlight((sample.record && sample.record.sottorivalab_project) || "-", state.query);
+        const metaRight = "seq " + sample.seqTypes.length + " | gf " + sample.gfIds.length + " | run " + sample.runs.length;
+        return '<article class="item' + isActive + '" data-id="' + escapeHtml(sample.sampleId) + '" role="button" tabindex="0">' +
+          '<div class="top"><strong>' + label + '</strong><span class="badge count">' + sample.seqTypes.length + ' seq</span></div>' +
+          '<div class="meta"><span>' + metaLeft + '</span><span>' + escapeHtml(metaRight) + '</span></div>' +
+          '</article>';
+      }).join("");
+
+      el.listPane.querySelectorAll(".item").forEach(function(node) {
+        const activate = function() {
+          state.selectedId = node.getAttribute("data-id");
+          renderList();
+          renderDetails();
+          jumpToDetails();
+        };
+        node.addEventListener("click", activate);
+        node.addEventListener("keydown", function(e) {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            activate();
+          }
+        });
+      });
+    }
+
+    function renderDetails() {
+      const selected = state.filtered.find(function(s) { return s.sampleId === state.selectedId; });
+      if (!selected) {
+        el.detailPane.innerHTML = '<p class="status">Select a sample from the left pane.</p>';
+        return;
+      }
+
+      const rec = selected.record || {};
+      const rows = [
+        ["sample_id", selected.sampleId],
+        ["patient", rec.patient],
+        ["sex", rec.sex],
+        ["sottorivalab_project", rec.sottorivalab_project],
+        ["sample_type", rec.sample_type],
+        ["sequence_types", selected.seqTypes.join(", ") || "-"],
+        ["gf_ids", selected.gfIds.join(", ") || "-"],
+        ["run_ids", selected.runs.join(", ") || "-"]
+      ].map(function(pair) {
+        return '<div class="k">' + escapeHtml(pair[0]) + '</div><div class="v">' + highlight(pair[1] == null ? "" : pair[1], state.query) + '</div>';
+      }).join("");
+
+      const seqSections = selected.seqTypes.map(function(seqType) {
+        return renderSeqSection(seqType, selected.seqSummary[seqType], state.query);
+      }).join("");
+
+      el.detailPane.innerHTML =
+        '<div class="kv">' + rows + '</div>' +
+        seqSections +
+        '<details><summary>raw sample JSON</summary><pre>' + escapeHtml(JSON.stringify(rec, null, 2)) + '</pre></details>';
+    }
+
+    function jumpToDetails() {
+      if (el.detailPane) {
+        // Always show the top of freshly rendered details.
+        el.detailPane.scrollTop = 0;
+      }
+      if (!el.detailSection) return;
+      const rect = el.detailSection.getBoundingClientRect();
+      const offScreen = rect.top < 0 || rect.top > window.innerHeight;
+      if (offScreen) {
+        el.detailSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    function renderSeqSection(seqType, info, query) {
+      if (!info) return "";
+      const fastqText = info.fastqPaths.length ? info.fastqPaths.join("\n") : "No raw fastq paths found.";
+      const bamRows = info.bamMeta.length
+        ? info.bamMeta.map(function(meta, i) {
+            return '<details><summary>bam ' + (i + 1) + '</summary>' +
+              '<div class="kv">' +
+              '<div class="k">bam_path</div><div class="v">' + highlight(meta.path || "-", query) + '</div>' +
+              '<div class="k">creation</div><div class="v">' + highlight(meta.creation_date || "-", query) + '</div>' +
+              '<div class="k">size</div><div class="v">' + highlight(meta.size || "-", query) + '</div>' +
+              '<div class="k">epoch</div><div class="v">' + highlight(meta.epoch || "-", query) + '</div>' +
+              '<div class="k">url</div><div class="v">' + highlight(meta.url || "-", query) + '</div>' +
+              '</div></details>';
+          }).join("")
+        : '<div class="status">No BAM records found.</div>';
+      return '<details>' +
+        '<summary>' + escapeHtml(seqType) + ' (gf_projects ' + info.gfProjects.length + ', gf_samples ' + info.gfSampleIds.length + ', runs ' + info.runs.length + ', fastqs ' + info.fastqPaths.length + ', bams ' + info.bamPaths.length + ')</summary>' +
+        '<h4>raw_sequence</h4>' +
+        '<div class="kv">' +
+        '<div class="k">gf_project_ids</div><div class="v">' + highlight(info.gfProjects.join(", ") || "-", query) + '</div>' +
+        '<div class="k">run_ids</div><div class="v">' + highlight(info.runs.join(", ") || "-", query) + '</div>' +
+        '<div class="k">gf_sample_ids</div><div class="v">' + highlight(info.gfSampleIds.join(", ") || "-", query) + '</div>' +
+        '</div>' +
+        '<details><summary>raw_fastq_paths (' + info.fastqPaths.length + ')</summary><pre>' + highlight(fastqText, query) + '</pre></details>' +
+        '<h4>processed_data</h4>' +
+        bamRows +
+        '</details>';
+    }
+
+    function renderCounts() {
+      el.totalCount.textContent = state.samples.length + " total";
+      el.visibleCount.textContent = state.filtered.length + " visible";
+    }
+
+    function clearViewer() {
+      state.samples = [];
+      state.filtered = [];
+      state.selectedId = null;
+      state.query = "";
+      el.fileInput.value = "";
+      el.queryInput.value = "";
+      renderList();
+      renderDetails();
+      renderCounts();
+      setStatus("Cleared. Load a JSON file to begin.");
+    }
+
+    async function copySelectedSampleId() {
+      const selected = state.filtered.find(function(s) { return s.sampleId === state.selectedId; });
+      if (!selected) return;
+      try {
+        await navigator.clipboard.writeText(selected.sampleId);
+        setStatus("Copied sample ID: " + selected.sampleId);
+      } catch (_) {
+        setStatus("Copy failed. Browser blocked clipboard access.", true);
+      }
+    }
+
+    function uniq(values) {
+      return Array.from(new Set(values.filter(function(v) { return v != null && v !== ""; })));
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function escapeRegExp(text) {
+      return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function highlight(value, query) {
+      const text = String(value == null ? "" : value);
+      const terms = parseQuery(query).map(function(t) { return t.value; }).filter(Boolean).sort(function(a, b) { return b.length - a.length; });
+      if (!terms.length) return escapeHtml(text);
+      let out = escapeHtml(text);
+      terms.forEach(function(term) {
+        const re = new RegExp(escapeRegExp(term), "ig");
+        out = out.replace(re, function(m) { return "<mark>" + m + "</mark>"; });
+      });
+      return out;
+    }
   </script>
 </body>
 </html>
