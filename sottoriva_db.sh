@@ -7,6 +7,132 @@ shift || true
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
+VIEW_JSON=""
+VIEW_TMP=""
+
+is_patient_centric_json() {
+  local json="$1"
+  jq -e 'has("patients") and (.patients | type == "object")' "$json" >/dev/null 2>&1
+}
+
+to_sample_centric_json() {
+  local src="$1" dst="$2"
+  jq '
+    {
+      version: (.version // null),
+      updated_at: (.updated_at // null),
+      samples: (
+        (.patients // {})
+        | to_entries
+        | reduce .[] as $p ({};
+            . + (
+              ($p.value.cases // {})
+              | to_entries
+              | reduce .[] as $c ({};
+                  . + (
+                    ($c.value.samples // {})
+                    | to_entries
+                    | reduce .[] as $s ({};
+                        ($s.value.sample_meta // {}) as $m |
+                        . + {
+                          ($s.key): {
+                            sample_meta: (
+                              $m + {
+                                patient: ($m.patient // $p.key),
+                                sex: ($m.sex // $p.value.sex // null),
+                                sottorivalab_project: ($m.sottorivalab_project // $c.value.project_id // null),
+                                sample_type: ($m.sample_type // null),
+                                phenotype: ($m.phenotype // null),
+                                case_control: ($m.case_control // null),
+                                tissue_site: ($m.tissue_site // null),
+                                patient_id: ($m.patient_id // $p.key),
+                                case_id: ($m.case_id // $c.key),
+                                project_id: ($m.project_id // $c.value.project_id // null)
+                              }
+                            ),
+                            seq: (($s.value.analyses // $s.value.seq) // {})
+                          }
+                        }
+                      )
+                  )
+                )
+            )
+          )
+      )
+    }
+  ' "$src" > "$dst"
+}
+
+to_patient_centric_json() {
+  local src="$1" dst="$2"
+  jq '
+    {
+      version: (.version // "0.2.0"),
+      updated_at: (.updated_at // null),
+      patients: (
+        (.samples // {})
+        | to_entries
+        | reduce .[] as $s ({};
+            ($s.value.sample_meta // {}) as $m |
+            ($m.patient_id // $m.patient // "UNKNOWN_PATIENT") as $pid |
+            ($m.case_id // $pid) as $cid |
+            ($m.project_id // $m.sottorivalab_project // null) as $prj |
+            .[$pid] //= { sex: ($m.sex // null), cases: {} } |
+            if .[$pid].sex == null and ($m.sex != null) then
+              .[$pid].sex = $m.sex
+            else
+              .
+            end |
+            .[$pid].cases[$cid] //= { project_id: $prj, samples: {} } |
+            if .[$pid].cases[$cid].project_id == null and ($prj != null) then
+              .[$pid].cases[$cid].project_id = $prj
+            else
+              .
+            end |
+            .[$pid].cases[$cid].samples[$s.key] = {
+              sample_meta: {
+                tissue_site: ($m.tissue_site // null),
+                sample_type: ($m.sample_type // null),
+                phenotype: ($m.phenotype // null),
+                case_control: ($m.case_control // null)
+              },
+              analyses: (($s.value.seq // $s.value.analyses) // {})
+            }
+          )
+      )
+    }
+  ' "$src" > "$dst"
+}
+
+prepare_json_view() {
+  local src="$1"
+  VIEW_JSON="$src"
+  VIEW_TMP=""
+  if is_patient_centric_json "$src"; then
+    VIEW_TMP=$(mktemp)
+    to_sample_centric_json "$src" "$VIEW_TMP" || return 1
+    VIEW_JSON="$VIEW_TMP"
+  fi
+}
+
+commit_json_view() {
+  local dst="$1"
+  if [[ -n "$VIEW_TMP" ]]; then
+    local out_tmp
+    out_tmp=$(mktemp)
+    to_patient_centric_json "$VIEW_JSON" "$out_tmp" || { rm -f "$out_tmp"; return 1; }
+    mv "$out_tmp" "$dst"
+  fi
+}
+
+cleanup_json_view() {
+  if [[ -n "$VIEW_TMP" ]]; then
+    rm -f "$VIEW_TMP"
+  fi
+  VIEW_JSON=""
+  VIEW_TMP=""
+}
+
 usage() {
   cat <<'EOF'
 Usage:
@@ -45,40 +171,48 @@ EOF
 }
 
 add_sample() {
-  local sample="" patient="" project="" sample_type="" json="working_con_db.json"
+  local sample="" patient="" case_id="" project="" sample_type="" json="working_con_db.json"
   local phenotype="" case_control="" tissue_site=""
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --sample)      sample="$2"; shift 2 ;;
-      --patient)     patient="$2"; shift 2 ;;
-      --project)     project="$2"; shift 2 ;;
+      --patient-id|--patient) patient="$2"; shift 2 ;;
+      --case-id)     case_id="$2"; shift 2 ;;
+      --project-id|--project) project="$2"; shift 2 ;;
       --sample-type) sample_type="$2"; shift 2 ;;
       --phenotype)   phenotype="$2"; shift 2 ;;
       --case-control) case_control="$2"; shift 2 ;;
       --tissue-site) tissue_site="$2"; shift 2 ;;
       --json)        json="$2"; shift 2 ;;
-      --help)        echo "Usage: sottoriva_db add-sample --sample S --patient P --project PR --sample-type T [--phenotype V] [--case-control V] [--tissue-site V] [--json FILE]"; return 0 ;;
+      --help)        echo "Usage: sottoriva_db add-sample --sample S --patient-id P --case-id C --project-id PR --sample-type T [--phenotype V] [--case-control V] [--tissue-site V] [--json FILE]"; return 0 ;;
 
       *) die "Unexpected arg: $1" ;;
     esac
   done
 
   : "${sample:?Missing --sample}"
-  : "${patient:?Missing --patient}"
-  : "${project:?Missing --project}"
+  : "${patient:?Missing --patient-id}"
+  : "${project:?Missing --project-id}"
   : "${sample_type:?Missing --sample-type}"
+  case_id="${case_id:-$patient}"
 
   if [[ ! -f "$json" ]]; then
-    # Create empty DB if not exists
-    echo '{"samples":{}}' > "$json"
+    # Create empty patient-centric DB if not exists
+    echo '{"version":"0.2.0","updated_at":null,"patients":{}}' > "$json"
   fi
+
+  local json_src="$json"
+  prepare_json_view "$json_src" || die "Failed to prepare JSON view"
+  json="$VIEW_JSON"
 
   local tmp_file
   tmp_file=$(mktemp)
 
   jq --arg s "$sample" \
      --arg pat "$patient" \
+     --arg pid "$patient" \
+     --arg cid "$case_id" \
      --arg pr "$project" \
      --arg st "$sample_type" \
      --arg pheno "$phenotype" \
@@ -92,7 +226,10 @@ add_sample() {
         sample_type: $st,
         phenotype: null,
         case_control: null,
-        tissue_site: null
+        tissue_site: null,
+        patient_id: $pid,
+        case_id: $cid,
+        project_id: $pr
       },
       seq: {}
     } |
@@ -103,12 +240,18 @@ add_sample() {
       sample_type: null,
       phenotype: null,
       case_control: null,
-      tissue_site: null
+      tissue_site: null,
+      patient_id: null,
+      case_id: null,
+      project_id: null
     } |
     .samples[$s].sample_meta.patient = (.samples[$s].sample_meta.patient // .samples[$s].patient // $pat) |
     .samples[$s].sample_meta.sex = (.samples[$s].sample_meta.sex // .samples[$s].sex // null) |
     .samples[$s].sample_meta.sottorivalab_project = (.samples[$s].sample_meta.sottorivalab_project // .samples[$s].sottorivalab_project // $pr) |
     .samples[$s].sample_meta.sample_type = (.samples[$s].sample_meta.sample_type // .samples[$s].sample_type // $st) |
+    .samples[$s].sample_meta.patient_id = (.samples[$s].sample_meta.patient_id // $pid) |
+    .samples[$s].sample_meta.case_id = (.samples[$s].sample_meta.case_id // $cid) |
+    .samples[$s].sample_meta.project_id = (.samples[$s].sample_meta.project_id // $pr) |
     .samples[$s].sample_meta.phenotype = (if $pheno == "" then .samples[$s].sample_meta.phenotype else $pheno end) |
     .samples[$s].sample_meta.case_control = (if $cc == "" then .samples[$s].sample_meta.case_control else $cc end) |
     .samples[$s].sample_meta.tissue_site = (if $site == "" then .samples[$s].sample_meta.tissue_site else $site end) |
@@ -117,9 +260,12 @@ add_sample() {
   
   if [[ $? -eq 0 ]]; then
     mv "$tmp_file" "$json"
+    commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
+    cleanup_json_view
     echo "Added sample $sample"
   else
     rm -f "$tmp_file"
+    cleanup_json_view
     die "Failed to update JSON"
   fi
 }
@@ -155,6 +301,9 @@ add_fastq() {
   if [[ ! -f "$json" ]]; then
     die "Database file not found: $json"
   fi
+  local json_src="$json"
+  prepare_json_view "$json_src" || die "Failed to prepare JSON view"
+  json="$VIEW_JSON"
 
   local tmp_file
   tmp_file=$(mktemp)
@@ -209,9 +358,12 @@ add_fastq() {
   
   if [[ $? -eq 0 ]]; then
     mv "$tmp_file" "$json"
+    commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
+    cleanup_json_view
     echo "Added FASTQs for $sample"
   else
     rm -f "$tmp_file"
+    cleanup_json_view
     die "Failed to update JSON"
   fi
 }
@@ -265,6 +417,13 @@ add_fastq_simple() {
   
   # Now we need to intelligently merge this file into the structure
   # We'll use jq to update the JSON
+  if [[ ! -f "$json" ]]; then
+    die "Database file not found: $json"
+  fi
+  local json_src="$json"
+  prepare_json_view "$json_src" || die "Failed to prepare JSON view"
+  json="$VIEW_JSON"
+
   local tmp_file
   tmp_file=$(mktemp)
   
@@ -314,9 +473,12 @@ add_fastq_simple() {
   
   if [[ $? -eq 0 ]]; then
     mv "$tmp_file" "$json"
+    commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
+    cleanup_json_view
     echo "Added $read_type for lane $lane to sample $sample (gf_id: $gf_id, run: $run)"
   else
     rm -f "$tmp_file"
+    cleanup_json_view
     die "Failed to update JSON"
   fi
 }
@@ -348,10 +510,14 @@ set_sample_meta() {
   if [[ ! -f "$json" ]]; then
     die "Database file not found: $json"
   fi
+  local json_src="$json"
+  prepare_json_view "$json_src" || die "Failed to prepare JSON view"
+  json="$VIEW_JSON"
 
   local sample_exists
   sample_exists=$(jq --arg s "$sample" '.samples | has($s)' "$json")
   if [[ "$sample_exists" != "true" ]]; then
+    cleanup_json_view
     die "Sample not found: $sample"
   fi
 
@@ -383,9 +549,12 @@ set_sample_meta() {
 
   if [[ $? -eq 0 ]]; then
     mv "$tmp_file" "$json"
+    commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
+    cleanup_json_view
     echo "Updated sample_meta for $sample"
   else
     rm -f "$tmp_file"
+    cleanup_json_view
     die "Failed to update JSON"
   fi
 }
@@ -418,10 +587,14 @@ set_seq_meta() {
   if [[ ! -f "$json" ]]; then
     die "Database file not found: $json"
   fi
+  local json_src="$json"
+  prepare_json_view "$json_src" || die "Failed to prepare JSON view"
+  json="$VIEW_JSON"
 
   local sample_exists
   sample_exists=$(jq --arg s "$sample" '.samples | has($s)' "$json")
   if [[ "$sample_exists" != "true" ]]; then
+    cleanup_json_view
     die "Sample not found: $sample"
   fi
 
@@ -443,9 +616,12 @@ set_seq_meta() {
 
   if [[ $? -eq 0 ]]; then
     mv "$tmp_file" "$json"
+    commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
+    cleanup_json_view
     echo "Updated sequencing metadata for $sample ($seq_type)"
   else
     rm -f "$tmp_file"
+    cleanup_json_view
     die "Failed to update JSON"
   fi
 }
@@ -470,10 +646,14 @@ show_sample_meta() {
   if [[ ! -f "$json" ]]; then
     die "Database file not found: $json"
   fi
+  local json_src="$json"
+  prepare_json_view "$json_src" || die "Failed to prepare JSON view"
+  json="$VIEW_JSON"
 
   local sample_exists
   sample_exists=$(jq --arg s "$sample" '.samples | has($s)' "$json")
   if [[ "$sample_exists" != "true" ]]; then
+    cleanup_json_view
     die "Sample not found: $sample"
   fi
 
@@ -496,10 +676,11 @@ show_sample_meta() {
     "case_control: \($m.case_control // "null")\n" +
     "tissue_site: \($m.tissue_site // "null")"
   ' "$json"
+  cleanup_json_view
 }
 
 validate_db() {
-  local json="working_con_db.json" schema="working_con_db.schema.json"
+  local json="working_con_db.json" schema="patient_centric.schema.json"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -576,6 +757,9 @@ list_missing_raw_seq() {
   if [[ ! -f "$json" ]]; then
     die "Database file not found: $json"
   fi
+  local json_src="$json"
+  prepare_json_view "$json_src" || die "Failed to prepare JSON view"
+  json="$VIEW_JSON"
 
   local out
   out=$(jq -r '
@@ -588,11 +772,13 @@ list_missing_raw_seq() {
 
   if [[ -z "$out" ]]; then
     echo "No null/empty raw_sequence entries found."
+    cleanup_json_view
     return 0
   fi
 
   echo -e "sample\tseq_type"
   echo "$out"
+  cleanup_json_view
 }
 
 audit_db() {
@@ -612,8 +798,11 @@ audit_db() {
   if [[ ! -f "$json" ]]; then
     die "Database file not found: $json"
   fi
+  local json_src="$json"
+  prepare_json_view "$json_src" || die "Failed to prepare JSON view"
+  json="$VIEW_JSON"
 
-  echo "Audit report for: $json"
+  echo "Audit report for: $json_src"
   echo "======================="
   echo ""
 
@@ -740,6 +929,7 @@ audit_db() {
   if [[ "$sample_meta_missing_count" -eq 0 && "$seq_meta_missing_count" -eq 0 && "$raw_empty_count" -eq 0 && "$processed_empty_count" -eq 0 ]]; then
     echo "No missing values found."
   fi
+  cleanup_json_view
 }
 
 add_processed() {
@@ -781,6 +971,9 @@ add_processed() {
   if [[ ! -f "$json" ]]; then
     die "Database file not found: $json"
   fi
+  local json_src="$json"
+  prepare_json_view "$json_src" || die "Failed to prepare JSON view"
+  json="$VIEW_JSON"
 
   # Check if sample exists
   local sample_exists
@@ -789,6 +982,7 @@ add_processed() {
   if [[ "$sample_exists" != "true" ]]; then
     echo "Warning: Sample '$sample' does not exist in the database. Data not added." >&2
     echo "       Please use 'add-sample' to create the sample first." >&2
+    cleanup_json_view
     return 1
   fi
 
@@ -801,6 +995,7 @@ add_processed() {
 
   if [[ "$file_exists" == "true" ]]; then
     echo "Warning: $data_type file '$file_path' already exists for sample '$sample' ($seq_type). Skipping." >&2
+    cleanup_json_view
     return 0
   fi
 
@@ -837,9 +1032,12 @@ add_processed() {
 
   if [[ $? -eq 0 ]]; then
     mv "$tmp_file" "$json"
+    commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
+    cleanup_json_view
     echo "Added $data_type to sample $sample ($seq_type)"
   else
     rm -f "$tmp_file"
+    cleanup_json_view
     die "Failed to update JSON"
   fi
 }
@@ -874,6 +1072,9 @@ add_bam() {
   if [[ ! -f "$json" ]]; then
     die "Database file not found: $json"
   fi
+  local json_src="$json"
+  prepare_json_view "$json_src" || die "Failed to prepare JSON view"
+  json="$VIEW_JSON"
 
   # Check if sample exists
   local sample_exists
@@ -882,6 +1083,7 @@ add_bam() {
   if [[ "$sample_exists" != "true" ]]; then
     echo "Warning: Sample '$sample' does not exist in the database. BAM file not added." >&2
     echo "       Please use 'add-sample' to create the sample first." >&2
+    cleanup_json_view
     return 1
   fi
 
@@ -894,6 +1096,7 @@ add_bam() {
   
   if [[ "$bam_exists" == "true" ]]; then
     echo "Warning: BAM file '$bam' already exists for sample '$sample' ($seq_type). Skipping." >&2
+    cleanup_json_view
     return 0
   fi
 
@@ -929,9 +1132,12 @@ add_bam() {
   
   if [[ $? -eq 0 ]]; then
     mv "$tmp_file" "$json"
+    commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
+    cleanup_json_view
     echo "Added BAM to sample $sample ($seq_type)"
   else
     rm -f "$tmp_file"
+    cleanup_json_view
     die "Failed to update JSON"
   fi
 }
@@ -950,6 +1156,9 @@ list_duplicate_bams() {
   if [[ ! -f "$json" ]]; then
     die "Database file not found: $json"
   fi
+  local json_src="$json"
+  prepare_json_view "$json_src" || die "Failed to prepare JSON view"
+  json="$VIEW_JSON"
   
   echo "Samples with duplicate BAMs:"
   echo "=============================="
@@ -991,6 +1200,7 @@ list_duplicate_bams() {
   if [[ "$has_duplicates" == "false" ]]; then
     echo "No duplicate BAMs found."
   fi
+  cleanup_json_view
 }
 
 remove_bam() {
@@ -1027,6 +1237,9 @@ remove_bam() {
   if [[ ! -f "$json" ]]; then
     die "Database file not found: $json"
   fi
+  local json_src="$json"
+  prepare_json_view "$json_src" || die "Failed to prepare JSON view"
+  json="$VIEW_JSON"
   
   # Check if the BAM exists in the database
   local exists
@@ -1036,6 +1249,7 @@ remove_bam() {
   ' "$json")
   
   if [[ "$exists" != "true" ]]; then
+    cleanup_json_view
     die "BAM not found in database: sample=$sample, seq_type=$seq_type, file_path=$file_path"
   fi
   
@@ -1057,9 +1271,12 @@ remove_bam() {
   
   if [[ $? -eq 0 ]]; then
     mv "$tmp_file" "$json"
+    commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
+    cleanup_json_view
     echo "✓ Removed from database"
   else
     rm -f "$tmp_file"
+    cleanup_json_view
     die "Failed to update database"
   fi
   
@@ -1105,6 +1322,9 @@ cleanup_bams() {
   if [[ ! -f "$json" ]]; then
     die "Database file not found: $json"
   fi
+  local json_src="$json"
+  prepare_json_view "$json_src" || die "Failed to prepare JSON view"
+  json="$VIEW_JSON"
   
   if [[ "$dry_run" == "true" ]]; then
     echo "DRY RUN MODE - No files will be deleted"
@@ -1122,6 +1342,7 @@ cleanup_bams() {
   
   if [[ -z "$files_to_delete" ]]; then
     echo "No duplicate BAMs found. Nothing to clean up."
+    cleanup_json_view
     return 0
   fi
   
@@ -1182,10 +1403,12 @@ cleanup_bams() {
     
     if [[ $? -eq 0 ]]; then
       mv "$tmp_file" "$json"
+      commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
       echo ""
       echo "✓ Database updated"
     else
       rm -f "$tmp_file"
+      cleanup_json_view
       die "Failed to update database"
     fi
   fi
@@ -1199,6 +1422,7 @@ cleanup_bams() {
     echo ""
     echo "Run without --dry-run to actually delete files"
   fi
+  cleanup_json_view
 }
 
 case "$cmd" in
