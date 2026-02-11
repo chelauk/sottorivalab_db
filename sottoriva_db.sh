@@ -581,12 +581,13 @@ list_missing_raw_seq() {
   out=$(jq -r '
     .samples | to_entries[] as $s |
     ($s.value.seq // {}) | to_entries[] |
-    select((.value | has("raw_sequence")) | not) |
+    (.value.raw_sequence // null) as $rs |
+    select($rs == null or (($rs | type) != "array") or (($rs | length) == 0)) |
     "\($s.key)\t\(.key)"
   ' "$json")
 
   if [[ -z "$out" ]]; then
-    echo "No missing raw_sequence entries found."
+    echo "No null/empty raw_sequence entries found."
     return 0
   fi
 
@@ -616,54 +617,74 @@ audit_db() {
   echo "======================="
   echo ""
 
-  local sample_meta_missing
-  sample_meta_missing=$(jq -r '
+  local sample_meta_missing_values
+  sample_meta_missing_values=$(jq -r '
     .samples | to_entries[] as $s |
     ($s.value.sample_meta // {}) as $m |
     ["patient","sex","sottorivalab_project","sample_type","phenotype","case_control","tissue_site"][] as $k |
-    select(($m | has($k)) | not) |
+    ($m[$k]) as $v |
+    select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == "")) |
     "\($s.key)\t\($k)"
   ' "$json")
 
-  local seq_meta_missing
-  seq_meta_missing=$(jq -r '
+  local seq_meta_missing_values
+  seq_meta_missing_values=$(jq -r '
     .samples | to_entries[] as $s |
     ($s.value.seq // {}) | to_entries[] as $q |
-    ["indexing","technology","raw_sequence","processed_data"][] as $k |
-    select(($q.value | has($k)) | not) |
+    ["indexing","technology"][] as $k |
+    ($q.value[$k]) as $v |
+    select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == "")) |
     "\($s.key)\t\($q.key)\t\($k)"
   ' "$json")
 
-  local processed_array_missing
-  processed_array_missing=$(jq -r '
+  local raw_sequence_empty
+  raw_sequence_empty=$(jq -r '
+    .samples | to_entries[] as $s |
+    ($s.value.seq // {}) | to_entries[] as $q |
+    ($q.value.raw_sequence // []) as $rs |
+    select(($rs | type) != "array" or ($rs | length) == 0) |
+    "\($s.key)\t\($q.key)"
+  ' "$json")
+
+  local processed_arrays_empty
+  processed_arrays_empty=$(jq -r '
     .samples | to_entries[] as $s |
     ($s.value.seq // {}) | to_entries[] as $q |
     ($q.value.processed_data // {}) as $pd |
     ["bam","vcf","cna","qc"][] as $k |
-    select(($pd | has($k)) | not) |
+    (($pd[$k]) // []) as $arr |
+    select(($arr | type) != "array" or ($arr | length) == 0) |
     "\($s.key)\t\($q.key)\t\($k)"
   ' "$json")
+
+  local sample_meta_missing_count=0
+  local seq_meta_missing_count=0
+  local raw_empty_count=0
+  local processed_empty_count=0
+  [[ -n "$sample_meta_missing_values" ]] && sample_meta_missing_count=$(printf '%s\n' "$sample_meta_missing_values" | wc -l | tr -d ' ')
+  [[ -n "$seq_meta_missing_values" ]] && seq_meta_missing_count=$(printf '%s\n' "$seq_meta_missing_values" | wc -l | tr -d ' ')
+  [[ -n "$raw_sequence_empty" ]] && raw_empty_count=$(printf '%s\n' "$raw_sequence_empty" | wc -l | tr -d ' ')
+  [[ -n "$processed_arrays_empty" ]] && processed_empty_count=$(printf '%s\n' "$processed_arrays_empty" | wc -l | tr -d ' ')
 
   local counts
   counts=$(jq -r '
     {
       samples: (.samples | length),
       seq_blocks: ([.samples[]?.seq | to_entries[]?] | length),
-      raw_missing: ([.samples | to_entries[] as $s | ($s.value.seq // {}) | to_entries[] | select((.value | has("raw_sequence")) | not)] | length),
-      processed_missing: ([.samples | to_entries[] as $s | ($s.value.seq // {}) | to_entries[] | select((.value | has("processed_data")) | not)] | length),
-      idx_missing: ([.samples | to_entries[] as $s | ($s.value.seq // {}) | to_entries[] | select((.value | has("indexing")) | not)] | length),
-      tech_missing: ([.samples | to_entries[] as $s | ($s.value.seq // {}) | to_entries[] | select((.value | has("technology")) | not)] | length),
-      pd_bam_missing: ([.samples | to_entries[] as $s | ($s.value.seq // {}) | to_entries[] | select(((.value.processed_data // {}) | has("bam")) | not)] | length),
-      pd_vcf_missing: ([.samples | to_entries[] as $s | ($s.value.seq // {}) | to_entries[] | select(((.value.processed_data // {}) | has("vcf")) | not)] | length),
-      pd_cna_missing: ([.samples | to_entries[] as $s | ($s.value.seq // {}) | to_entries[] | select(((.value.processed_data // {}) | has("cna")) | not)] | length),
-      pd_qc_missing: ([.samples | to_entries[] as $s | ($s.value.seq // {}) | to_entries[] | select(((.value.processed_data // {}) | has("qc")) | not)] | length),
-      sm_patient_missing: ([.samples | to_entries[] | select(((.value.sample_meta // {}) | has("patient")) | not)] | length),
-      sm_sex_missing: ([.samples | to_entries[] | select(((.value.sample_meta // {}) | has("sex")) | not)] | length),
-      sm_project_missing: ([.samples | to_entries[] | select(((.value.sample_meta // {}) | has("sottorivalab_project")) | not)] | length),
-      sm_sample_type_missing: ([.samples | to_entries[] | select(((.value.sample_meta // {}) | has("sample_type")) | not)] | length),
-      sm_phenotype_missing: ([.samples | to_entries[] | select(((.value.sample_meta // {}) | has("phenotype")) | not)] | length),
-      sm_case_control_missing: ([.samples | to_entries[] | select(((.value.sample_meta // {}) | has("case_control")) | not)] | length),
-      sm_tissue_site_missing: ([.samples | to_entries[] | select(((.value.sample_meta // {}) | has("tissue_site")) | not)] | length)
+      sm_patient_missing_value: ([.samples | to_entries[] | (.value.sample_meta.patient // null) as $v | select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == ""))] | length),
+      sm_sex_missing_value: ([.samples | to_entries[] | (.value.sample_meta.sex // null) as $v | select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == ""))] | length),
+      sm_project_missing_value: ([.samples | to_entries[] | (.value.sample_meta.sottorivalab_project // null) as $v | select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == ""))] | length),
+      sm_sample_type_missing_value: ([.samples | to_entries[] | (.value.sample_meta.sample_type // null) as $v | select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == ""))] | length),
+      sm_phenotype_missing_value: ([.samples | to_entries[] | (.value.sample_meta.phenotype // null) as $v | select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == ""))] | length),
+      sm_case_control_missing_value: ([.samples | to_entries[] | (.value.sample_meta.case_control // null) as $v | select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == ""))] | length),
+      sm_tissue_site_missing_value: ([.samples | to_entries[] | (.value.sample_meta.tissue_site // null) as $v | select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == ""))] | length),
+      seq_indexing_missing_value: ([.samples[]?.seq | to_entries[]? | (.value.indexing // null) as $v | select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == ""))] | length),
+      seq_technology_missing_value: ([.samples[]?.seq | to_entries[]? | (.value.technology // null) as $v | select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == ""))] | length),
+      seq_raw_sequence_empty: ([.samples[]?.seq | to_entries[]? | (.value.raw_sequence // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
+      pd_bam_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.bam // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
+      pd_vcf_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.vcf // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
+      pd_cna_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.cna // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
+      pd_qc_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.qc // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length)
     }
   ' "$json")
 
@@ -671,47 +692,53 @@ audit_db() {
   echo "$counts" | jq -r '
     "  samples: \(.samples)\n" +
     "  seq_blocks: \(.seq_blocks)\n" +
-    "  missing seq.raw_sequence: \(.raw_missing)\n" +
-    "  missing seq.processed_data: \(.processed_missing)\n" +
-    "  missing seq.indexing: \(.idx_missing)\n" +
-    "  missing seq.technology: \(.tech_missing)\n" +
-    "  missing processed_data.bam: \(.pd_bam_missing)\n" +
-    "  missing processed_data.vcf: \(.pd_vcf_missing)\n" +
-    "  missing processed_data.cna: \(.pd_cna_missing)\n" +
-    "  missing processed_data.qc: \(.pd_qc_missing)\n" +
-    "  missing sample_meta.patient: \(.sm_patient_missing)\n" +
-    "  missing sample_meta.sex: \(.sm_sex_missing)\n" +
-    "  missing sample_meta.sottorivalab_project: \(.sm_project_missing)\n" +
-    "  missing sample_meta.sample_type: \(.sm_sample_type_missing)\n" +
-    "  missing sample_meta.phenotype: \(.sm_phenotype_missing)\n" +
-    "  missing sample_meta.case_control: \(.sm_case_control_missing)\n" +
-    "  missing sample_meta.tissue_site: \(.sm_tissue_site_missing)"
+    "  sample_meta.patient null/empty: \(.sm_patient_missing_value)\n" +
+    "  sample_meta.sex null/empty: \(.sm_sex_missing_value)\n" +
+    "  sample_meta.sottorivalab_project null/empty: \(.sm_project_missing_value)\n" +
+    "  sample_meta.sample_type null/empty: \(.sm_sample_type_missing_value)\n" +
+    "  sample_meta.phenotype null/empty: \(.sm_phenotype_missing_value)\n" +
+    "  sample_meta.case_control null/empty: \(.sm_case_control_missing_value)\n" +
+    "  sample_meta.tissue_site null/empty: \(.sm_tissue_site_missing_value)\n" +
+    "  seq.indexing null/empty: \(.seq_indexing_missing_value)\n" +
+    "  seq.technology null/empty: \(.seq_technology_missing_value)\n" +
+    "  seq.raw_sequence empty: \(.seq_raw_sequence_empty)\n" +
+    "  processed_data.bam empty: \(.pd_bam_empty)\n" +
+    "  processed_data.vcf empty: \(.pd_vcf_empty)\n" +
+    "  processed_data.cna empty: \(.pd_cna_empty)\n" +
+    "  processed_data.qc empty: \(.pd_qc_empty)"
   '
   echo ""
 
-  if [[ -n "$seq_meta_missing" ]]; then
-    echo "Missing seq-level keys (sample, seq_type, key):"
+  if [[ -n "$seq_meta_missing_values" ]]; then
+    echo "Sample/seq null or empty values (sample, seq_type, key):"
     echo -e "sample\tseq_type\tkey"
-    echo "$seq_meta_missing"
+    echo "$seq_meta_missing_values"
     echo ""
   fi
 
-  if [[ -n "$processed_array_missing" ]]; then
-    echo "Missing processed_data arrays (sample, seq_type, key):"
-    echo -e "sample\tseq_type\tkey"
-    echo "$processed_array_missing"
+  if [[ -n "$raw_sequence_empty" ]]; then
+    echo "Empty raw_sequence arrays (sample, seq_type):"
+    echo -e "sample\tseq_type"
+    echo "$raw_sequence_empty"
     echo ""
   fi
 
-  if [[ -n "$sample_meta_missing" ]]; then
-    echo "Missing sample_meta keys (sample, key):"
+  if [[ -n "$processed_arrays_empty" ]]; then
+    echo "Empty processed_data arrays (sample, seq_type, key):"
+    echo -e "sample\tseq_type\tkey"
+    echo "$processed_arrays_empty"
+    echo ""
+  fi
+
+  if [[ -n "$sample_meta_missing_values" ]]; then
+    echo "Sample-level null or empty values (sample, key):"
     echo -e "sample\tkey"
-    echo "$sample_meta_missing"
+    echo "$sample_meta_missing_values"
     echo ""
   fi
 
-  if [[ -z "$seq_meta_missing" && -z "$processed_array_missing" && -z "$sample_meta_missing" ]]; then
-    echo "No missing required keys found."
+  if [[ "$sample_meta_missing_count" -eq 0 && "$seq_meta_missing_count" -eq 0 && "$raw_empty_count" -eq 0 && "$processed_empty_count" -eq 0 ]]; then
+    echo "No missing values found."
   fi
 }
 
