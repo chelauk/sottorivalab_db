@@ -84,14 +84,14 @@
       </div>
 
       <div class="controls">
-        <input id="queryInput" type="search" placeholder="Search or token query (sample:..., patient:..., project:..., gf:..., run:..., path:...)">
+        <input id="queryInput" type="search" placeholder="Search or token query (sample:..., patient:..., case:..., project:..., gf:..., run:..., path:...)">
         <div class="row">
           <input id="fileInput" type="file" accept="application/json,.json">
           <button id="clearBtn" type="button">Clear</button>
         </div>
       </div>
 
-      <div class="hint">Terms are ANDed. Tokens: <code>sample:</code>, <code>patient:</code>, <code>project:</code>, <code>type:</code>, <code>seq:</code>, <code>gf:</code>, <code>gfsample:</code>, <code>run:</code>, <code>path:</code>, <code>bam:</code>.</div>
+      <div class="hint">Terms are ANDed. Tokens: <code>sample:</code>, <code>patient:</code>, <code>case:</code>, <code>project:</code>, <code>type:</code>, <code>seq:</code>, <code>gf:</code>, <code>gfsample:</code>, <code>run:</code>, <code>path:</code>, <code>bam:</code>.</div>
       <div id="status" class="status">Load <code>working_con_db_sample100.json</code> to begin.</div>
     </header>
 
@@ -152,11 +152,10 @@
       if (!file) return;
       try {
         const parsed = JSON.parse(await file.text());
-        const samplesObj = parsed && parsed.samples;
-        if (!samplesObj || typeof samplesObj !== "object" || Array.isArray(samplesObj)) {
-          throw new Error("Expected root object with 'samples' dictionary.");
-        }
-        state.samples = Object.entries(samplesObj).map(([sampleId, rec]) => normalizeSample(sampleId, rec));
+        const samplesObj = extractSamplesMap(parsed);
+        state.samples = Object.entries(samplesObj).map(function(entry) {
+          return normalizeSample(entry[0], entry[1]);
+        });
         state.query = "";
         el.queryInput.value = "";
         applyFilters();
@@ -166,8 +165,60 @@
       }
     }
 
+    function extractSamplesMap(parsed) {
+      if (parsed && parsed.samples && typeof parsed.samples === "object" && !Array.isArray(parsed.samples)) {
+        return parsed.samples;
+      }
+      if (parsed && parsed.patients && typeof parsed.patients === "object" && !Array.isArray(parsed.patients)) {
+        return flattenPatientCentricSamples(parsed.patients);
+      }
+      throw new Error("Expected root object with either 'samples' or 'patients'.");
+    }
+
+    function flattenPatientCentricSamples(patientsObj) {
+      const out = {};
+      Object.entries(patientsObj).forEach(function(patientEntry) {
+        const patientId = patientEntry[0];
+        const patientRec = patientEntry[1];
+        if (!patientRec || typeof patientRec !== "object") return;
+        const patientSex = patientRec.sex;
+        const cases = patientRec.cases;
+        if (!cases || typeof cases !== "object") return;
+        Object.entries(cases).forEach(function(caseEntry) {
+          const caseId = caseEntry[0];
+          const caseRec = caseEntry[1];
+          if (!caseRec || typeof caseRec !== "object") return;
+          const projectId = caseRec.project_id;
+          const samples = caseRec.samples;
+          if (!samples || typeof samples !== "object") return;
+          Object.entries(samples).forEach(function(sampleEntry) {
+            const sampleId = sampleEntry[0];
+            const sampleRec = sampleEntry[1];
+            if (!sampleRec || typeof sampleRec !== "object") return;
+            const sampleMeta = (sampleRec.sample_meta && typeof sampleRec.sample_meta === "object") ? sampleRec.sample_meta : {};
+            out[sampleId] = {
+              sample_meta: {
+                patient: sampleMeta.patient != null ? sampleMeta.patient : patientId,
+                sex: sampleMeta.sex != null ? sampleMeta.sex : patientSex,
+                sottorivalab_project: sampleMeta.sottorivalab_project != null ? sampleMeta.sottorivalab_project : projectId,
+                sample_type: sampleMeta.sample_type != null ? sampleMeta.sample_type : null,
+                phenotype: sampleMeta.phenotype != null ? sampleMeta.phenotype : null,
+                case_control: sampleMeta.case_control != null ? sampleMeta.case_control : null,
+                tissue_site: sampleMeta.tissue_site != null ? sampleMeta.tissue_site : null,
+                case_id: caseId
+              },
+              seq: (sampleRec.analyses && typeof sampleRec.analyses === "object") ? sampleRec.analyses : ((sampleRec.seq && typeof sampleRec.seq === "object") ? sampleRec.seq : {})
+            };
+          });
+        });
+      });
+      return out;
+    }
+
     function normalizeSample(sampleId, rec) {
-      const seq = (rec && rec.seq && typeof rec.seq === "object") ? rec.seq : {};
+      const seq = (rec && rec.seq && typeof rec.seq === "object")
+        ? rec.seq
+        : ((rec && rec.analyses && typeof rec.analyses === "object") ? rec.analyses : {});
       const meta = (rec && rec.sample_meta && typeof rec.sample_meta === "object") ? rec.sample_meta : {};
       const seqTypes = Object.keys(seq);
       const gfIds = [];
@@ -192,6 +243,7 @@
       const tokenMap = {
         sample: [sampleId],
         patient: [meta.patient],
+        case: [meta.case_id],
         project: [meta.sottorivalab_project],
         type: [meta.sample_type],
         seq: seqTypes,
@@ -385,6 +437,7 @@
       const rows = [
         ["sample_id", selected.sampleId],
         ["patient", meta.patient],
+        ["case_id", meta.case_id],
         ["sex", meta.sex],
         ["sottorivalab_project", meta.sottorivalab_project],
         ["sample_type", meta.sample_type],
