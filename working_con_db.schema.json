@@ -1,0 +1,305 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sottorivalab.local/schemas/working_con_db.schema.json",
+  "title": "Working CON DB",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "updated_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "samples": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/sample"
+      }
+    }
+  },
+  "required": [
+    "samples"
+  ],
+  "$defs": {
+    "sample": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sample_meta": {
+          "$ref": "#/$defs/sample_meta"
+        },
+        "seq": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/seq_block"
+          }
+        }
+      },
+      "required": [
+        "sample_meta",
+        "seq"
+      ]
+    },
+    "sample_meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "patient": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sex": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sottorivalab_project": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sample_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "phenotype": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "case_control": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tissue_site": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "patient",
+        "sex",
+        "sottorivalab_project",
+        "sample_type",
+        "phenotype",
+        "case_control",
+        "tissue_site"
+      ]
+    },
+    "seq_block": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "indexing": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "technology": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "raw_sequence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/raw_sequence_item"
+          }
+        },
+        "processed_data": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "bam": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/processed_item"
+              }
+            },
+            "vcf": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/processed_item"
+              }
+            },
+            "cna": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/processed_item"
+              }
+            },
+            "qc": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/processed_item"
+              }
+            }
+          },
+          "required": [
+            "bam",
+            "vcf",
+            "cna",
+            "qc"
+          ]
+        }
+      },
+      "required": [
+        "indexing",
+        "technology",
+        "raw_sequence",
+        "processed_data"
+      ]
+    },
+    "raw_sequence_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "gf_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fastqs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fastq_item"
+          }
+        }
+      },
+      "required": [
+        "gf_id",
+        "fastqs"
+      ]
+    },
+    "fastq_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "gf_project": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "run": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "files": {
+          "type": "object",
+          "patternProperties": {
+            "^L[0-9]{3}$": {
+              "$ref": "#/$defs/lane_reads"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "gf_project",
+        "run",
+        "files"
+      ]
+    },
+    "lane_reads": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "R1": {
+          "type": "string"
+        },
+        "R2": {
+          "type": "string"
+        },
+        "R3": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "R1"
+      ]
+    },
+    "processed_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "file_path": {
+          "type": "string"
+        },
+        "file_type": {
+          "type": "string",
+          "enum": [
+            "bam",
+            "vcf",
+            "cna",
+            "qc"
+          ]
+        },
+        "pipeline_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "metadata": {
+          "$ref": "#/$defs/file_metadata"
+        }
+      },
+      "required": [
+        "file_path",
+        "file_type",
+        "pipeline_url",
+        "metadata"
+      ]
+    },
+    "file_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "size": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "created": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "epoch": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "size",
+        "created",
+        "epoch"
+      ]
+    }
+  }
+}
