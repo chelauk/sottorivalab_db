@@ -1055,7 +1055,7 @@ add_bam() {
       --bam)          bam="$2"; shift 2 ;;
       --pipeline-url) pipeline_url="$2"; shift 2 ;;
       --json)         json="$2"; shift 2 ;;
-      --help)         echo "Usage: sottoriva_db add-bam ..."; return 0 ;;
+      --help)         echo "Usage: sottoriva_db add-bam --sample --seq-type --epoch --created --size --bam --pipeline-url..."; return 0 ;;
       *) die "Unexpected arg: $1" ;;
     esac
   done
