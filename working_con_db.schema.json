@@ -51,7 +51,19 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "patient": {
+        "patient_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "case_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "project_id": {
           "type": [
             "string",
             "null"
@@ -95,7 +107,9 @@
         }
       },
       "required": [
-        "patient",
+        "patient_id",
+        "case_id",
+        "project_id",
         "sex",
         "sottorivalab_project",
         "sample_type",

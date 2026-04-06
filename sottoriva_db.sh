@@ -38,7 +38,6 @@ to_sample_centric_json() {
                           ($s.key): {
                             sample_meta: (
                               $m + {
-                                patient: ($m.patient // $p.key),
                                 sex: ($m.sex // $p.value.sex // null),
                                 sottorivalab_project: ($m.sottorivalab_project // $c.value.project_id // null),
                                 sample_type: ($m.sample_type // null),
@@ -74,7 +73,7 @@ to_patient_centric_json() {
         | to_entries
         | reduce .[] as $s ({};
             ($s.value.sample_meta // {}) as $m |
-            ($m.patient_id // $m.patient // "UNKNOWN_PATIENT") as $pid |
+            ($m.patient_id // "UNKNOWN_PATIENT") as $pid |
             ($m.case_id // $pid) as $cid |
             ($m.project_id // $m.sottorivalab_project // null) as $prj |
             .[$pid] //= { sex: ($m.sex // null), cases: {} } |
@@ -171,13 +170,13 @@ EOF
 }
 
 add_sample() {
-  local sample="" patient="" case_id="" project="" sample_type="" json="working_con_db.json"
+  local sample="" patient_id="" case_id="" project="" sample_type="" json="working_con_db.json"
   local phenotype="" case_control="" tissue_site=""
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --sample)      sample="$2"; shift 2 ;;
-      --patient-id|--patient) patient="$2"; shift 2 ;;
+      --patient-id|--patient) patient_id="$2"; shift 2 ;;
       --case-id)     case_id="$2"; shift 2 ;;
       --project-id|--project) project="$2"; shift 2 ;;
       --sample-type) sample_type="$2"; shift 2 ;;
@@ -192,10 +191,10 @@ add_sample() {
   done
 
   : "${sample:?Missing --sample}"
-  : "${patient:?Missing --patient-id}"
+  : "${patient_id:?Missing --patient-id}"
   : "${project:?Missing --project-id}"
   : "${sample_type:?Missing --sample-type}"
-  case_id="${case_id:-$patient}"
+  case_id="${case_id:-$patient_id}"
 
   if [[ ! -f "$json" ]]; then
     # Create empty patient-centric DB if not exists
@@ -210,8 +209,7 @@ add_sample() {
   tmp_file=$(mktemp)
 
   jq --arg s "$sample" \
-     --arg pat "$patient" \
-     --arg pid "$patient" \
+     --arg pid "$patient_id" \
      --arg cid "$case_id" \
      --arg pr "$project" \
      --arg st "$sample_type" \
@@ -220,7 +218,6 @@ add_sample() {
      --arg site "$tissue_site" '
     .samples[$s] //= {
       sample_meta: {
-        patient: $pat,
         sex: null,
         sottorivalab_project: $pr,
         sample_type: $st,
@@ -234,7 +231,6 @@ add_sample() {
       seq: {}
     } |
     .samples[$s].sample_meta //= {
-      patient: null,
       sex: null,
       sottorivalab_project: null,
       sample_type: null,
@@ -245,7 +241,6 @@ add_sample() {
       case_id: null,
       project_id: null
     } |
-    .samples[$s].sample_meta.patient = (.samples[$s].sample_meta.patient // .samples[$s].patient // $pat) |
     .samples[$s].sample_meta.sex = (.samples[$s].sample_meta.sex // .samples[$s].sex // null) |
     .samples[$s].sample_meta.sottorivalab_project = (.samples[$s].sample_meta.sottorivalab_project // .samples[$s].sottorivalab_project // $pr) |
     .samples[$s].sample_meta.sample_type = (.samples[$s].sample_meta.sample_type // .samples[$s].sample_type // $st) |
@@ -255,7 +250,7 @@ add_sample() {
     .samples[$s].sample_meta.phenotype = (if $pheno == "" then .samples[$s].sample_meta.phenotype else $pheno end) |
     .samples[$s].sample_meta.case_control = (if $cc == "" then .samples[$s].sample_meta.case_control else $cc end) |
     .samples[$s].sample_meta.tissue_site = (if $site == "" then .samples[$s].sample_meta.tissue_site else $site end) |
-    del(.samples[$s].patient, .samples[$s].sex, .samples[$s].sottorivalab_project, .samples[$s].sample_type)
+    del(.samples[$s].patient, .samples[$s].sex, .samples[$s].sottorivalab_project, .samples[$s].sample_type, .samples[$s].sample_meta.patient)
   ' "$json" > "$tmp_file"
   
   if [[ $? -eq 0 ]]; then
@@ -529,7 +524,9 @@ set_sample_meta() {
      --arg cc "$case_control" \
      --arg site "$tissue_site" '
     .samples[$s].sample_meta //= {
-      patient: null,
+      patient_id: null,
+      case_id: null,
+      project_id: null,
       sex: null,
       sottorivalab_project: null,
       sample_type: null,
@@ -537,14 +534,13 @@ set_sample_meta() {
       case_control: null,
       tissue_site: null
     } |
-    .samples[$s].sample_meta.patient = (.samples[$s].sample_meta.patient // .samples[$s].patient // null) |
     .samples[$s].sample_meta.sex = (.samples[$s].sample_meta.sex // .samples[$s].sex // null) |
     .samples[$s].sample_meta.sottorivalab_project = (.samples[$s].sample_meta.sottorivalab_project // .samples[$s].sottorivalab_project // null) |
     .samples[$s].sample_meta.sample_type = (.samples[$s].sample_meta.sample_type // .samples[$s].sample_type // null) |
     .samples[$s].sample_meta.phenotype = (if $pheno == "" then .samples[$s].sample_meta.phenotype else $pheno end) |
     .samples[$s].sample_meta.case_control = (if $cc == "" then .samples[$s].sample_meta.case_control else $cc end) |
     .samples[$s].sample_meta.tissue_site = (if $site == "" then .samples[$s].sample_meta.tissue_site else $site end) |
-    del(.samples[$s].patient, .samples[$s].sex, .samples[$s].sottorivalab_project, .samples[$s].sample_type)
+    del(.samples[$s].patient, .samples[$s].sex, .samples[$s].sottorivalab_project, .samples[$s].sample_type, .samples[$s].sample_meta.patient)
   ' "$json" > "$tmp_file"
 
   if [[ $? -eq 0 ]]; then
@@ -659,7 +655,9 @@ show_sample_meta() {
 
   jq -r --arg s "$sample" '
     .samples[$s].sample_meta // {
-      patient: null,
+      patient_id: null,
+      case_id: null,
+      project_id: null,
       sex: null,
       sottorivalab_project: null,
       sample_type: null,
@@ -668,7 +666,9 @@ show_sample_meta() {
       tissue_site: null
     } as $m |
     "sample: \($s)\n" +
-    "patient: \($m.patient // "null")\n" +
+    "patient_id: \($m.patient_id // "null")\n" +
+    "case_id: \($m.case_id // "null")\n" +
+    "project_id: \($m.project_id // "null")\n" +
     "sex: \($m.sex // "null")\n" +
     "sottorivalab_project: \($m.sottorivalab_project // "null")\n" +
     "sample_type: \($m.sample_type // "null")\n" +
@@ -806,11 +806,19 @@ audit_db() {
   echo "======================="
   echo ""
 
+  local sample_meta_missing_objects
+  sample_meta_missing_objects=$(jq -r '
+    .samples
+    | to_entries[]
+    | select(.value.sample_meta == null)
+    | .key
+  ' "$json")
+
   local sample_meta_missing_values
   sample_meta_missing_values=$(jq -r '
     .samples | to_entries[] as $s |
     ($s.value.sample_meta // {}) as $m |
-    ["patient","sex","sottorivalab_project","sample_type","phenotype","case_control","tissue_site"][] as $k |
+    ["patient_id","case_id","project_id","sex","sottorivalab_project","sample_type","phenotype","case_control","tissue_site"][] as $k |
     ($m[$k]) as $v |
     select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == "")) |
     "\($s.key)\t\($k)"
@@ -846,10 +854,12 @@ audit_db() {
     "\($s.key)\t\($q.key)\t\($k)"
   ' "$json")
 
+  local sample_meta_missing_object_count=0
   local sample_meta_missing_count=0
   local seq_meta_missing_count=0
   local raw_empty_count=0
   local processed_empty_count=0
+  [[ -n "$sample_meta_missing_objects" ]] && sample_meta_missing_object_count=$(printf '%s\n' "$sample_meta_missing_objects" | wc -l | tr -d ' ')
   [[ -n "$sample_meta_missing_values" ]] && sample_meta_missing_count=$(printf '%s\n' "$sample_meta_missing_values" | wc -l | tr -d ' ')
   [[ -n "$seq_meta_missing_values" ]] && seq_meta_missing_count=$(printf '%s\n' "$seq_meta_missing_values" | wc -l | tr -d ' ')
   [[ -n "$raw_sequence_empty" ]] && raw_empty_count=$(printf '%s\n' "$raw_sequence_empty" | wc -l | tr -d ' ')
@@ -860,7 +870,10 @@ audit_db() {
     {
       samples: (.samples | length),
       seq_blocks: ([.samples[]?.seq | to_entries[]?] | length),
-      sm_patient_missing_value: ([.samples | to_entries[] | (.value.sample_meta.patient // null) as $v | select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == ""))] | length),
+      sm_object_missing: ([.samples | to_entries[] | select(.value.sample_meta == null)] | length),
+      sm_patient_id_missing_value: ([.samples | to_entries[] | (.value.sample_meta.patient_id // null) as $v | select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == ""))] | length),
+      sm_case_id_missing_value: ([.samples | to_entries[] | (.value.sample_meta.case_id // null) as $v | select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == ""))] | length),
+      sm_project_id_missing_value: ([.samples | to_entries[] | (.value.sample_meta.project_id // null) as $v | select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == ""))] | length),
       sm_sex_missing_value: ([.samples | to_entries[] | (.value.sample_meta.sex // null) as $v | select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == ""))] | length),
       sm_project_missing_value: ([.samples | to_entries[] | (.value.sample_meta.sottorivalab_project // null) as $v | select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == ""))] | length),
       sm_sample_type_missing_value: ([.samples | to_entries[] | (.value.sample_meta.sample_type // null) as $v | select($v == null or (($v | type) == "string" and ($v | gsub("\\s+"; "")) == ""))] | length),
@@ -881,7 +894,10 @@ audit_db() {
   echo "$counts" | jq -r '
     "  samples: \(.samples)\n" +
     "  seq_blocks: \(.seq_blocks)\n" +
-    "  sample_meta.patient null/empty: \(.sm_patient_missing_value)\n" +
+    "  sample_meta object missing: \(.sm_object_missing)\n" +
+    "  sample_meta.patient_id null/empty: \(.sm_patient_id_missing_value)\n" +
+    "  sample_meta.case_id null/empty: \(.sm_case_id_missing_value)\n" +
+    "  sample_meta.project_id null/empty: \(.sm_project_id_missing_value)\n" +
     "  sample_meta.sex null/empty: \(.sm_sex_missing_value)\n" +
     "  sample_meta.sottorivalab_project null/empty: \(.sm_project_missing_value)\n" +
     "  sample_meta.sample_type null/empty: \(.sm_sample_type_missing_value)\n" +
@@ -897,6 +913,13 @@ audit_db() {
     "  processed_data.qc empty: \(.pd_qc_empty)"
   '
   echo ""
+
+  if [[ -n "$sample_meta_missing_objects" ]]; then
+    echo "Samples missing sample_meta object:"
+    echo "sample"
+    echo "$sample_meta_missing_objects"
+    echo ""
+  fi
 
   if [[ -n "$seq_meta_missing_values" ]]; then
     echo "Sample/seq null or empty values (sample, seq_type, key):"
@@ -926,7 +949,7 @@ audit_db() {
     echo ""
   fi
 
-  if [[ "$sample_meta_missing_count" -eq 0 && "$seq_meta_missing_count" -eq 0 && "$raw_empty_count" -eq 0 && "$processed_empty_count" -eq 0 ]]; then
+  if [[ "$sample_meta_missing_object_count" -eq 0 && "$sample_meta_missing_count" -eq 0 && "$seq_meta_missing_count" -eq 0 && "$raw_empty_count" -eq 0 && "$processed_empty_count" -eq 0 ]]; then
     echo "No missing values found."
   fi
   cleanup_json_view

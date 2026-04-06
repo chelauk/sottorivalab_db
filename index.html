@@ -84,14 +84,14 @@
       </div>
 
       <div class="controls">
-        <input id="queryInput" type="search" placeholder="Search or token query (sample:..., patient:..., case:..., project:..., gf:..., run:..., path:...)">
+        <input id="queryInput" type="search" placeholder="Search or token query (sample:..., patient:..., patient_id:..., case:..., project:..., gf:..., run:..., path:...)">
         <div class="row">
           <input id="fileInput" type="file" accept="application/json,.json">
           <button id="clearBtn" type="button">Clear</button>
         </div>
       </div>
 
-      <div class="hint">Terms are ANDed. Tokens: <code>sample:</code>, <code>patient:</code>, <code>case:</code>, <code>project:</code>, <code>type:</code>, <code>seq:</code>, <code>gf:</code>, <code>gfsample:</code>, <code>run:</code>, <code>path:</code>, <code>bam:</code>.</div>
+      <div class="hint">Terms are ANDed. Tokens: <code>sample:</code>, <code>patient:</code>, <code>patient_id:</code>, <code>case:</code>, <code>project:</code>, <code>type:</code>, <code>seq:</code>, <code>gf:</code>, <code>gfsample:</code>, <code>run:</code>, <code>path:</code>, <code>bam:</code>.</div>
       <div id="status" class="status">Load <code>working_con_db_sample100.json</code> to begin.</div>
     </header>
 
@@ -198,7 +198,7 @@
             const sampleMeta = (sampleRec.sample_meta && typeof sampleRec.sample_meta === "object") ? sampleRec.sample_meta : {};
             out[sampleId] = {
               sample_meta: {
-                patient: sampleMeta.patient != null ? sampleMeta.patient : patientId,
+                patient_id: sampleMeta.patient_id != null ? sampleMeta.patient_id : patientId,
                 sex: sampleMeta.sex != null ? sampleMeta.sex : patientSex,
                 sottorivalab_project: sampleMeta.sottorivalab_project != null ? sampleMeta.sottorivalab_project : projectId,
                 sample_type: sampleMeta.sample_type != null ? sampleMeta.sample_type : null,
@@ -242,7 +242,8 @@
 
       const tokenMap = {
         sample: [sampleId],
-        patient: [meta.patient],
+        patient: [meta.patient_id],
+        patient_id: [meta.patient_id],
         case: [meta.case_id],
         project: [meta.sottorivalab_project],
         type: [meta.sample_type],
@@ -436,7 +437,7 @@
       const meta = (rec.sample_meta && typeof rec.sample_meta === "object") ? rec.sample_meta : {};
       const rows = [
         ["sample_id", selected.sampleId],
-        ["patient", meta.patient],
+        ["patient_id", meta.patient_id],
         ["case_id", meta.case_id],
         ["sex", meta.sex],
         ["sottorivalab_project", meta.sottorivalab_project],
