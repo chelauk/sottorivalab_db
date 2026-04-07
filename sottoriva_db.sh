@@ -834,30 +834,32 @@ list_missing_raw_seq() {
 }
 
 export_fastqs_csv() {
-  local sample="" seq_type="" output="" json="working_con_db.json"
+  local seq_type="" output="" json="working_con_db.json"
+  local -a samples=()
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --sample) sample="$2"; shift 2 ;;
+      --sample) samples+=("$2"); shift 2 ;;
       --seq-type) seq_type="$2"; shift 2 ;;
       --output) output="$2"; shift 2 ;;
       --json) json="$2"; shift 2 ;;
       --help)
-        echo "Usage: sottoriva_db export-fastqs-csv --sample S [--seq-type ST] [--output FILE] [--json FILE]"
+        echo "Usage: sottoriva_db export-fastqs-csv --sample S [--sample S2 ...] [--seq-type ST] [--output FILE] [--json FILE]"
         echo ""
-        echo "Export FASTQ paths for a sample as CSV."
+        echo "Export FASTQ paths for one or more samples as CSV."
         echo ""
         echo "Columns:"
-        echo "  sample_id,seq_type,gf_id,gf_project,run,lane,r1,r2,r3"
+        echo "  patient,sample,lane,fastq_1,fastq_2,fastq_3"
         echo ""
         echo "Options:"
-        echo "  --sample S        Sample ID to export"
+        echo "  --sample S        Sample ID to export; repeat to combine multiple samples"
         echo "  --seq-type ST     Restrict export to one seq type"
         echo "  --output FILE     Write CSV to FILE instead of stdout"
         echo "  --json FILE       JSON file to read"
         echo ""
         echo "Examples:"
         echo "  sottoriva_db export-fastqs-csv --sample U01_021_B2_germline --seq-type wgs"
+        echo "  sottoriva_db export-fastqs-csv --sample U01_021_B2_germline --sample U01_022_B2_germline --output fastqs.csv"
         echo "  sottoriva_db export-fastqs-csv --sample U01_021_B2_germline --output U01_021_B2_germline.fastqs.csv"
         return 0
         ;;
@@ -865,7 +867,9 @@ export_fastqs_csv() {
     esac
   done
 
-  : "${sample:?Missing --sample}"
+  if [[ ${#samples[@]} -eq 0 ]]; then
+    die "Missing --sample"
+  fi
 
   if [[ ! -f "$json" ]]; then
     die "Database file not found: $json"
@@ -875,34 +879,33 @@ export_fastqs_csv() {
   prepare_json_view "$json_src" || die "Failed to prepare JSON view"
   json="$VIEW_JSON"
 
-  local sample_exists
-  sample_exists=$(jq --arg s "$sample" '.samples | has($s)' "$json")
-  if [[ "$sample_exists" != "true" ]]; then
-    cleanup_json_view
-    die "Sample not found: $sample"
-  fi
+  local sample
+  for sample in "${samples[@]}"; do
+    local sample_exists
+    sample_exists=$(jq --arg s "$sample" '.samples | has($s)' "$json")
+    if [[ "$sample_exists" != "true" ]]; then
+      cleanup_json_view
+      die "Sample not found: $sample"
+    fi
+  done
 
   local jq_filter
   jq_filter='
-    [["sample_id","seq_type","gf_id","gf_project","run","lane","r1","r2","r3"]] +
+    . as $db
+    | [["patient","sample","lane","fastq_1","fastq_2","fastq_3"]] +
     [
-      .samples[$sample].seq
+      $samples[] as $sample
+      | ($db.samples[$sample].sample_meta.patient_id // "") as $patient
+      | $db.samples[$sample].seq
       | to_entries[]
       | select($seq_type == "" or .key == $seq_type)
-      | .key as $seq
       | (.value.raw_sequence // [])[]
-      | .gf_id as $gf_id
       | (.fastqs // [])[]
-      | .gf_project as $gf_project
-      | .run as $run
       | (.files // {})
       | to_entries[]
       | [
+          $patient,
           $sample,
-          $seq,
-          $gf_id,
-          $gf_project,
-          $run,
           .key,
           (.value.R1 // ""),
           (.value.R2 // ""),
@@ -913,12 +916,15 @@ export_fastqs_csv() {
     | @csv
   '
 
+  local samples_json
+  samples_json=$(printf '%s\n' "${samples[@]}" | jq -R . | jq -s .)
+
   if [[ -n "$output" ]]; then
-    jq -r --arg sample "$sample" --arg seq_type "$seq_type" "$jq_filter" "$json" > "$output"
+    jq -r --argjson samples "$samples_json" --arg seq_type "$seq_type" "$jq_filter" "$json" > "$output"
     cleanup_json_view
     echo "Wrote FASTQ CSV to $output"
   else
-    jq -r --arg sample "$sample" --arg seq_type "$seq_type" "$jq_filter" "$json"
+    jq -r --argjson samples "$samples_json" --arg seq_type "$seq_type" "$jq_filter" "$json"
     cleanup_json_view
   fi
 }
