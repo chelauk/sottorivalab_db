@@ -98,7 +98,7 @@
     <main class="app">
       <section id="detailSection" class="pane card">
         <div class="pane-head">
-          <strong>Samples</strong>
+          <strong>Patients</strong>
           <span id="visibleCount" class="badge">0 visible</span>
         </div>
         <div id="listPane" class="pane-body"></div>
@@ -107,10 +107,10 @@
       <section class="pane card">
         <div class="pane-head">
           <strong>Details</strong>
-          <button id="copySampleBtn" type="button">Copy Sample ID</button>
+          <button id="copySampleBtn" type="button">Copy Patient ID</button>
         </div>
         <div id="detailPane" class="pane-body">
-          <p class="status">Select a sample from the left pane.</p>
+          <p class="status">Select a patient from the left pane.</p>
         </div>
       </section>
     </main>
@@ -119,8 +119,9 @@
   <script>
     const state = {
       samples: [],
-      filtered: [],
-      selectedId: null,
+      patients: [],
+      filteredPatients: [],
+      selectedPatientId: null,
       query: ""
     };
 
@@ -140,7 +141,7 @@
     el.fileInput.addEventListener("change", onFileLoad);
     el.queryInput.addEventListener("input", onQueryInput);
     el.clearBtn.addEventListener("click", clearViewer);
-    el.copySampleBtn.addEventListener("click", copySelectedSampleId);
+    el.copySampleBtn.addEventListener("click", copySelectedPatientId);
 
     function setStatus(message, isError) {
       el.status.textContent = message;
@@ -156,10 +157,11 @@
         state.samples = Object.entries(samplesObj).map(function(entry) {
           return normalizeSample(entry[0], entry[1]);
         });
+        state.patients = buildPatientRecords(state.samples);
         state.query = "";
         el.queryInput.value = "";
         applyFilters();
-        setStatus("Loaded " + file.name + " (" + state.samples.length + " samples).");
+        setStatus("Loaded " + file.name + " (" + state.samples.length + " samples, " + state.patients.length + " patients).");
       } catch (err) {
         setStatus("Failed to parse JSON: " + err.message, true);
       }
@@ -354,6 +356,67 @@
       };
     }
 
+    function buildPatientRecords(samples) {
+      const patientMap = {};
+      samples.forEach(function(sample) {
+        const meta = (sample.record && sample.record.sample_meta && typeof sample.record.sample_meta === "object") ? sample.record.sample_meta : {};
+        const patientId = meta.patient_id || "UNKNOWN_PATIENT";
+        if (!patientMap[patientId]) {
+          patientMap[patientId] = {
+            patientId: patientId,
+            sex: meta.sex,
+            caseIds: [],
+            projects: [],
+            sampleIds: [],
+            seqTypes: [],
+            gfProjectIds: [],
+            gfSampleIds: [],
+            runs: [],
+            paths: [],
+            bamPaths: [],
+            samples: []
+          };
+        }
+        const patient = patientMap[patientId];
+        if (patient.sex == null && meta.sex != null) {
+          patient.sex = meta.sex;
+        }
+        patient.caseIds.push(meta.case_id);
+        patient.projects.push(meta.sottorivalab_project);
+        patient.sampleIds.push(sample.sampleId);
+        patient.seqTypes.push.apply(patient.seqTypes, sample.seqTypes);
+        patient.gfProjectIds.push.apply(patient.gfProjectIds, sample.gfProjectIds);
+        patient.gfSampleIds.push.apply(patient.gfSampleIds, sample.gfSampleIds);
+        patient.runs.push.apply(patient.runs, sample.runs);
+        patient.paths.push.apply(patient.paths, sample.paths);
+        patient.bamPaths.push.apply(patient.bamPaths, sample.bamPaths);
+        patient.samples.push(sample);
+      });
+
+      return Object.values(patientMap).map(function(patient) {
+        patient.caseIds = uniq(patient.caseIds);
+        patient.projects = uniq(patient.projects);
+        patient.sampleIds = uniq(patient.sampleIds);
+        patient.seqTypes = uniq(patient.seqTypes);
+        patient.gfProjectIds = uniq(patient.gfProjectIds);
+        patient.gfSampleIds = uniq(patient.gfSampleIds);
+        patient.runs = uniq(patient.runs);
+        patient.paths = uniq(patient.paths);
+        patient.bamPaths = uniq(patient.bamPaths);
+        patient.search = [
+          patient.patientId,
+          patient.sex
+        ]
+          .concat(patient.caseIds, patient.projects, patient.sampleIds, patient.seqTypes, patient.gfProjectIds, patient.gfSampleIds, patient.runs, patient.paths, patient.bamPaths)
+          .filter(function(v) { return v != null && v !== ""; })
+          .map(function(v) { return String(v).toLowerCase(); })
+          .join(" ");
+        return patient;
+      }).sort(function(a, b) {
+        return a.patientId.localeCompare(b.patientId);
+      });
+    }
+
     function onQueryInput(event) {
       state.query = event.target.value || "";
       applyFilters();
@@ -383,9 +446,10 @@
 
     function applyFilters() {
       const parsed = parseQuery(state.query);
-      state.filtered = parsed.length ? state.samples.filter(function(s) { return sampleMatches(s, parsed); }) : state.samples.slice();
-      if (!state.filtered.some(function(s) { return s.sampleId === state.selectedId; })) {
-        state.selectedId = state.filtered[0] ? state.filtered[0].sampleId : null;
+      const filteredSamples = parsed.length ? state.samples.filter(function(s) { return sampleMatches(s, parsed); }) : state.samples.slice();
+      state.filteredPatients = buildPatientRecords(filteredSamples);
+      if (!state.filteredPatients.some(function(p) { return p.patientId === state.selectedPatientId; })) {
+        state.selectedPatientId = state.filteredPatients[0] ? state.filteredPatients[0].patientId : null;
       }
       renderList();
       renderDetails();
@@ -393,25 +457,24 @@
     }
 
     function renderList() {
-      if (!state.filtered.length) {
-        el.listPane.innerHTML = '<p class="status">No matching samples.</p>';
+      if (!state.filteredPatients.length) {
+        el.listPane.innerHTML = '<p class="status">No matching patients.</p>';
         return;
       }
-      el.listPane.innerHTML = state.filtered.map(function(sample) {
-        const isActive = sample.sampleId === state.selectedId ? " active" : "";
-        const label = highlight(sample.sampleId, state.query);
-        const sampleMeta = (sample.record && sample.record.sample_meta) || {};
-        const metaLeft = renderValue(sampleMeta.sottorivalab_project, state.query);
-        const metaRight = "seq " + sample.seqTypes.length + " | gf_proj " + sample.gfProjectIds.length + " | gf_sample " + sample.gfSampleIds.length + " | run " + sample.runs.length;
-        return '<article class="item' + isActive + '" data-id="' + escapeHtml(sample.sampleId) + '" role="button" tabindex="0">' +
-          '<div class="top"><strong>' + label + '</strong><span class="badge count">' + sample.seqTypes.length + ' seq</span></div>' +
+      el.listPane.innerHTML = state.filteredPatients.map(function(patient) {
+        const isActive = patient.patientId === state.selectedPatientId ? " active" : "";
+        const label = highlight(patient.patientId, state.query);
+        const metaLeft = renderValue(patient.projects.join(", ") || null, state.query);
+        const metaRight = "samples " + patient.sampleIds.length + " | seq " + patient.seqTypes.length + " | runs " + patient.runs.length;
+        return '<article class="item' + isActive + '" data-id="' + escapeHtml(patient.patientId) + '" role="button" tabindex="0">' +
+          '<div class="top"><strong>' + label + '</strong><span class="badge count">' + patient.sampleIds.length + ' samples</span></div>' +
           '<div class="meta"><span>' + metaLeft + '</span><span>' + escapeHtml(metaRight) + '</span></div>' +
           '</article>';
       }).join("");
 
       el.listPane.querySelectorAll(".item").forEach(function(node) {
         const activate = function() {
-          state.selectedId = node.getAttribute("data-id");
+          state.selectedPatientId = node.getAttribute("data-id");
           renderList();
           renderDetails();
           jumpToDetails();
@@ -427,38 +490,31 @@
     }
 
     function renderDetails() {
-      const selected = state.filtered.find(function(s) { return s.sampleId === state.selectedId; });
+      const selected = state.filteredPatients.find(function(p) { return p.patientId === state.selectedPatientId; });
       if (!selected) {
-        el.detailPane.innerHTML = '<p class="status">Select a sample from the left pane.</p>';
+        el.detailPane.innerHTML = '<p class="status">Select a patient from the left pane.</p>';
         return;
       }
 
-      const rec = selected.record || {};
-      const meta = (rec.sample_meta && typeof rec.sample_meta === "object") ? rec.sample_meta : {};
       const rows = [
-        ["sample_id", selected.sampleId],
-        ["patient_id", meta.patient_id],
-        ["case_id", meta.case_id],
-        ["sex", meta.sex],
-        ["sottorivalab_project", meta.sottorivalab_project],
-        ["sample_type", meta.sample_type],
-        ["phenotype", meta.phenotype],
-        ["case_control", meta.case_control],
-        ["tissue_site", meta.tissue_site],
+        ["patient_id", selected.patientId],
+        ["sex", selected.sex],
+        ["case_ids", selected.caseIds.join(", ") || "-"],
+        ["projects", selected.projects.join(", ") || "-"],
+        ["sample_count", String(selected.sampleIds.length)],
         ["sequence_types", selected.seqTypes.join(", ") || "-"],
         ["run_ids", selected.runs.join(", ") || "-"]
       ].map(function(pair) {
         return '<div class="k">' + escapeHtml(pair[0]) + '</div><div class="v">' + renderValue(pair[1], state.query) + '</div>';
       }).join("");
 
-      const seqSections = selected.seqTypes.map(function(seqType) {
-        return renderSeqSection(seqType, selected.seqSummary[seqType], state.query);
+      const sampleSections = selected.samples.map(function(sample) {
+        return renderSampleSection(sample, state.query);
       }).join("");
 
       el.detailPane.innerHTML =
         '<div class="kv">' + rows + '</div>' +
-        seqSections +
-        '<details><summary>raw sample JSON</summary><pre>' + escapeHtml(JSON.stringify(rec, null, 2)) + '</pre></details>';
+        sampleSections;
     }
 
     function jumpToDetails() {
@@ -505,15 +561,42 @@
         '</details>';
     }
 
+    function renderSampleSection(sample, query) {
+      const rec = sample.record || {};
+      const meta = (rec.sample_meta && typeof rec.sample_meta === "object") ? rec.sample_meta : {};
+      const rows = [
+        ["sample_id", sample.sampleId],
+        ["case_id", meta.case_id],
+        ["project", meta.sottorivalab_project],
+        ["sample_type", meta.sample_type],
+        ["phenotype", meta.phenotype],
+        ["case_control", meta.case_control],
+        ["tissue_site", meta.tissue_site],
+        ["sequence_types", sample.seqTypes.join(", ") || "-"]
+      ].map(function(pair) {
+        return '<div class="k">' + escapeHtml(pair[0]) + '</div><div class="v">' + renderValue(pair[1], query) + '</div>';
+      }).join("");
+      const seqSections = sample.seqTypes.map(function(seqType) {
+        return renderSeqSection(seqType, sample.seqSummary[seqType], query);
+      }).join("");
+      return '<details>' +
+        '<summary>' + highlight(sample.sampleId, query) + ' (' + sample.seqTypes.length + ' seq)</summary>' +
+        '<div class="kv">' + rows + '</div>' +
+        seqSections +
+        '<details><summary>raw sample JSON</summary><pre>' + escapeHtml(JSON.stringify(rec, null, 2)) + '</pre></details>' +
+        '</details>';
+    }
+
     function renderCounts() {
-      el.totalCount.textContent = state.samples.length + " total";
-      el.visibleCount.textContent = state.filtered.length + " visible";
+      el.totalCount.textContent = state.patients.length + " patients";
+      el.visibleCount.textContent = state.filteredPatients.length + " visible";
     }
 
     function clearViewer() {
       state.samples = [];
-      state.filtered = [];
-      state.selectedId = null;
+      state.patients = [];
+      state.filteredPatients = [];
+      state.selectedPatientId = null;
       state.query = "";
       el.fileInput.value = "";
       el.queryInput.value = "";
@@ -523,12 +606,12 @@
       setStatus("Cleared. Load a JSON file to begin.");
     }
 
-    async function copySelectedSampleId() {
-      const selected = state.filtered.find(function(s) { return s.sampleId === state.selectedId; });
+    async function copySelectedPatientId() {
+      const selected = state.filteredPatients.find(function(p) { return p.patientId === state.selectedPatientId; });
       if (!selected) return;
       try {
-        await navigator.clipboard.writeText(selected.sampleId);
-        setStatus("Copied sample ID: " + selected.sampleId);
+        await navigator.clipboard.writeText(selected.patientId);
+        setStatus("Copied patient ID: " + selected.patientId);
       } catch (_) {
         setStatus("Copy failed. Browser blocked clipboard access.", true);
       }

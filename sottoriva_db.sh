@@ -143,6 +143,7 @@ Commands:
   set-seq-meta         Update sequencing metadata (indexing/technology) for a seq type
   show-sample-meta     Show sample metadata for a sample
   list-missing-raw-seq List sample seq blocks with missing raw_sequence
+  export-fastqs-csv    Export FASTQ paths for a sample to CSV
   audit                Run a data-quality audit (missing required fields)
   validate-db          Validate DB JSON against JSON Schema
   add-processed        Add processed output (vcf/cna/qc) to a sample
@@ -160,6 +161,7 @@ Run:
   sottoriva_db set-seq-meta --help
   sottoriva_db show-sample-meta --help
   sottoriva_db list-missing-raw-seq --help
+  sottoriva_db export-fastqs-csv --help
   sottoriva_db audit --help
   sottoriva_db validate-db --help
   sottoriva_db add-processed --help
@@ -829,6 +831,96 @@ list_missing_raw_seq() {
   echo -e "sample\tseq_type"
   echo "$out"
   cleanup_json_view
+}
+
+export_fastqs_csv() {
+  local sample="" seq_type="" output="" json="working_con_db.json"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --sample) sample="$2"; shift 2 ;;
+      --seq-type) seq_type="$2"; shift 2 ;;
+      --output) output="$2"; shift 2 ;;
+      --json) json="$2"; shift 2 ;;
+      --help)
+        echo "Usage: sottoriva_db export-fastqs-csv --sample S [--seq-type ST] [--output FILE] [--json FILE]"
+        echo ""
+        echo "Export FASTQ paths for a sample as CSV."
+        echo ""
+        echo "Columns:"
+        echo "  sample_id,seq_type,gf_id,gf_project,run,lane,r1,r2,r3"
+        echo ""
+        echo "Options:"
+        echo "  --sample S        Sample ID to export"
+        echo "  --seq-type ST     Restrict export to one seq type"
+        echo "  --output FILE     Write CSV to FILE instead of stdout"
+        echo "  --json FILE       JSON file to read"
+        echo ""
+        echo "Examples:"
+        echo "  sottoriva_db export-fastqs-csv --sample U01_021_B2_germline --seq-type wgs"
+        echo "  sottoriva_db export-fastqs-csv --sample U01_021_B2_germline --output U01_021_B2_germline.fastqs.csv"
+        return 0
+        ;;
+      *) die "Unexpected arg: $1" ;;
+    esac
+  done
+
+  : "${sample:?Missing --sample}"
+
+  if [[ ! -f "$json" ]]; then
+    die "Database file not found: $json"
+  fi
+
+  local json_src="$json"
+  prepare_json_view "$json_src" || die "Failed to prepare JSON view"
+  json="$VIEW_JSON"
+
+  local sample_exists
+  sample_exists=$(jq --arg s "$sample" '.samples | has($s)' "$json")
+  if [[ "$sample_exists" != "true" ]]; then
+    cleanup_json_view
+    die "Sample not found: $sample"
+  fi
+
+  local jq_filter
+  jq_filter='
+    [["sample_id","seq_type","gf_id","gf_project","run","lane","r1","r2","r3"]] +
+    [
+      .samples[$sample].seq
+      | to_entries[]
+      | select($seq_type == "" or .key == $seq_type)
+      | .key as $seq
+      | (.value.raw_sequence // [])[]
+      | .gf_id as $gf_id
+      | (.fastqs // [])[]
+      | .gf_project as $gf_project
+      | .run as $run
+      | (.files // {})
+      | to_entries[]
+      | [
+          $sample,
+          $seq,
+          $gf_id,
+          $gf_project,
+          $run,
+          .key,
+          (.value.R1 // ""),
+          (.value.R2 // ""),
+          (.value.R3 // "")
+        ]
+    ]
+    | .[]
+    | @csv
+  '
+
+  if [[ -n "$output" ]]; then
+    jq -r --arg sample "$sample" --arg seq_type "$seq_type" "$jq_filter" "$json" > "$output"
+    cleanup_json_view
+    echo "Wrote FASTQ CSV to $output"
+  else
+    jq -r --arg sample "$sample" --arg seq_type "$seq_type" "$jq_filter" "$json"
+    cleanup_json_view
+  fi
 }
 
 audit_db() {
@@ -1504,6 +1596,7 @@ case "$cmd" in
   set-seq-meta) set_seq_meta "$@" ;;
   show-sample-meta) show_sample_meta "$@" ;;
   list-missing-raw-seq) list_missing_raw_seq "$@" ;;
+  export-fastqs-csv) export_fastqs_csv "$@" ;;
   audit) audit_db "$@" ;;
   validate-db) validate_db "$@" ;;
   add-processed) add_processed "$@" ;;
