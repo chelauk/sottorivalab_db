@@ -184,7 +184,26 @@ add_sample() {
       --case-control) case_control="$2"; shift 2 ;;
       --tissue-site) tissue_site="$2"; shift 2 ;;
       --json)        json="$2"; shift 2 ;;
-      --help)        echo "Usage: sottoriva_db add-sample --sample S --patient-id P --case-id C --project-id PR --sample-type T [--phenotype V] [--case-control V] [--tissue-site V] [--json FILE]"; return 0 ;;
+      --help)
+        echo "Usage: sottoriva_db add-sample --sample S --patient-id P [--case-id C] --project-id PR --sample-type T [--phenotype V] [--case-control V] [--tissue-site V] [--json FILE]"
+        echo ""
+        echo "Create or update sample metadata."
+        echo ""
+        echo "Required:"
+        echo "  --sample S         Sample ID"
+        echo "  --patient-id P     Canonical patient ID stored in sample_meta.patient_id"
+        echo "  --project-id PR    Project ID stored in sample_meta.project_id"
+        echo "  --sample-type T    Sample type"
+        echo ""
+        echo "Optional:"
+        echo "  --case-id C        Case ID stored in sample_meta.case_id"
+        echo "                     If omitted, case_id defaults to patient_id"
+        echo "  --phenotype V      Sample phenotype"
+        echo "  --case-control V   Case/control label"
+        echo "  --tissue-site V    Tissue site"
+        echo "  --json FILE        JSON file to update"
+        return 0
+        ;;
 
       *) die "Unexpected arg: $1" ;;
     esac
@@ -280,7 +299,16 @@ add_fastq() {
       --r2)             r2="$2"; shift 2 ;;
       --r3)             r3="$2"; shift 2 ;;
       --json)           json="$2"; shift 2 ;;
-      --help)           echo "Usage: sottoriva_db add-fastq ..."; return 0 ;;
+      --help)
+        echo "Usage: sottoriva_db add-fastq --sample S --seq-type ST --gf-id GF --gf-project GP --run RUN --lane L001 --r1 PATH [--r2 PATH] [--r3 PATH] [--json FILE]"
+        echo ""
+        echo "Add FASTQ paths to an existing sample."
+        echo ""
+        echo "The sample must already exist with metadata."
+        echo "Create it first with:"
+        echo "  sottoriva_db add-sample --sample S --patient-id P [--case-id C] --project-id PR --sample-type T"
+        return 0
+        ;;
       *) die "Unexpected arg: $1" ;;
     esac
   done
@@ -299,6 +327,15 @@ add_fastq() {
   local json_src="$json"
   prepare_json_view "$json_src" || die "Failed to prepare JSON view"
   json="$VIEW_JSON"
+
+  local sample_exists
+  sample_exists=$(jq --arg s "$sample" '.samples | has($s)' "$json")
+  if [[ "$sample_exists" != "true" ]]; then
+    cleanup_json_view
+    echo "Warning: Sample '$sample' does not exist in the database. FASTQs not added." >&2
+    echo "       Please use 'add-sample --patient-id ...' to create the sample first." >&2
+    return 1
+  fi
 
   local tmp_file
   tmp_file=$(mktemp)
@@ -368,9 +405,13 @@ add_fastq_simple() {
   local sample gf_id gf_project run seq_type path json="working_con_db.json"
   
   # Parse positional arguments
-  if [[ $# -lt 5 ]]; then
+  if [[ $# -lt 6 ]]; then
     echo "Usage: sottoriva_db add-fastq-simple <sample> <gf_id> <gf_project> <run> <seq_type> <path> [--json FILE]"
     echo "Example: sottoriva_db add-fastq-simple SAMPLE1 LAZ_123 RITM001 RUN_001 wgs /path/to/file_L001_R1_001.fastq.gz"
+    echo ""
+    echo "The sample must already exist with metadata."
+    echo "Create it first with:"
+    echo "  sottoriva_db add-sample --sample S --patient-id P [--case-id C] --project-id PR --sample-type T"
     return 1
   fi
   
@@ -418,6 +459,15 @@ add_fastq_simple() {
   local json_src="$json"
   prepare_json_view "$json_src" || die "Failed to prepare JSON view"
   json="$VIEW_JSON"
+
+  local sample_exists
+  sample_exists=$(jq --arg s "$sample" '.samples | has($s)' "$json")
+  if [[ "$sample_exists" != "true" ]]; then
+    cleanup_json_view
+    echo "Warning: Sample '$sample' does not exist in the database. FASTQ not added." >&2
+    echo "       Please use 'add-sample --patient-id ...' to create the sample first." >&2
+    return 1
+  fi
 
   local tmp_file
   tmp_file=$(mktemp)
