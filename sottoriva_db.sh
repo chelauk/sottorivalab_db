@@ -732,7 +732,7 @@ show_sample_meta() {
 }
 
 validate_db() {
-  local json="working_con_db.json" schema="patient_centric.schema.json"
+  local json="working_con_db.json" schema="working_con_db.schema.json"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
