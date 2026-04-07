@@ -913,7 +913,8 @@ export_fastqs_csv() {
         ]
     ]
     | .[]
-    | @csv
+    | map(tostring)
+    | join(",")
   '
 
   local samples_json
