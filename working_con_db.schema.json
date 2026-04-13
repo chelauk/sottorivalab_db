@@ -180,6 +180,18 @@
                 "$ref": "#/$defs/processed_item"
               }
             },
+            "ichorcna": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/processed_item"
+              }
+            },
+            "ace": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/processed_item"
+              }
+            },
             "cna": {
               "type": "array",
               "items": {
@@ -200,6 +212,8 @@
             "seqz",
             "sequenza",
             "rseqz",
+            "ichorcna",
+            "ace",
             "cna",
             "qc"
           ]
@@ -300,6 +314,8 @@
             "seqz",
             "sequenza",
             "rseqz",
+            "ichorcna",
+            "ace",
             "cna",
             "qc"
           ]

@@ -662,6 +662,8 @@ set_seq_meta() {
     .samples[$s].seq[$st].processed_data.seqz //= [] |
     .samples[$s].seq[$st].processed_data.sequenza //= [] |
     .samples[$s].seq[$st].processed_data.rseqz //= [] |
+    .samples[$s].seq[$st].processed_data.ichorcna //= [] |
+    .samples[$s].seq[$st].processed_data.ace //= [] |
     .samples[$s].seq[$st].processed_data.cna //= [] |
     .samples[$s].seq[$st].processed_data.qc //= [] |
     .samples[$s].seq[$st].indexing = (if $idx == "" then .samples[$s].seq[$st].indexing else $idx end) |
@@ -1003,7 +1005,7 @@ audit_db() {
     .samples | to_entries[] as $s |
     ($s.value.seq // {}) | to_entries[] as $q |
     ($q.value.processed_data // {}) as $pd |
-    ["bam","vcf","maf","seqz","sequenza","rseqz","cna","qc"][] as $k |
+    ["bam","vcf","maf","seqz","sequenza","rseqz","ichorcna","ace","cna","qc"][] as $k |
     (($pd[$k]) // []) as $arr |
     select(($arr | type) != "array" or ($arr | length) == 0) |
     "\($s.key)\t\($q.key)\t\($k)"
@@ -1044,6 +1046,8 @@ audit_db() {
       pd_seqz_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.seqz // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
       pd_sequenza_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.sequenza // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
       pd_rseqz_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.rseqz // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
+      pd_ichorcna_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.ichorcna // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
+      pd_ace_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.ace // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
       pd_cna_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.cna // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
       pd_qc_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.qc // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length)
     }
@@ -1072,6 +1076,8 @@ audit_db() {
     "  processed_data.seqz empty: \(.pd_seqz_empty)\n" +
     "  processed_data.sequenza empty: \(.pd_sequenza_empty)\n" +
     "  processed_data.rseqz empty: \(.pd_rseqz_empty)\n" +
+    "  processed_data.ichorcna empty: \(.pd_ichorcna_empty)\n" +
+    "  processed_data.ace empty: \(.pd_ace_empty)\n" +
     "  processed_data.cna empty: \(.pd_cna_empty)\n" +
     "  processed_data.qc empty: \(.pd_qc_empty)"
   '
@@ -1133,7 +1139,7 @@ add_processed() {
       --size)         size="$2"; shift 2 ;;
       --json)         json="$2"; shift 2 ;;
       --help)
-        echo "Usage: sottoriva_db add-processed --sample S --seq-type ST --data-type (vcf|maf|seqz|sequenza|rseqz|cna|qc) --file-path PATH [--pipeline-url URL] [--epoch E] [--created D] [--size N] [--json FILE]"
+        echo "Usage: sottoriva_db add-processed --sample S --seq-type ST --data-type (vcf|maf|seqz|sequenza|rseqz|ichorcna|ace|cna|qc) --file-path PATH [--pipeline-url URL] [--epoch E] [--created D] [--size N] [--json FILE]"
         return 0
         ;;
       *) die "Unexpected arg: $1" ;;
@@ -1145,8 +1151,8 @@ add_processed() {
   : "${data_type:?Missing --data-type}"
   : "${file_path:?Missing --file-path}"
 
-  if [[ "$data_type" != "vcf" && "$data_type" != "maf" && "$data_type" != "seqz" && "$data_type" != "sequenza" && "$data_type" != "rseqz" && "$data_type" != "cna" && "$data_type" != "qc" ]]; then
-    die "Invalid --data-type: $data_type (allowed: vcf, maf, seqz, sequenza, rseqz, cna, qc)"
+  if [[ "$data_type" != "vcf" && "$data_type" != "maf" && "$data_type" != "seqz" && "$data_type" != "sequenza" && "$data_type" != "rseqz" && "$data_type" != "ichorcna" && "$data_type" != "ace" && "$data_type" != "cna" && "$data_type" != "qc" ]]; then
+    die "Invalid --data-type: $data_type (allowed: vcf, maf, seqz, sequenza, rseqz, ichorcna, ace, cna, qc)"
   fi
 
   # Default values if not provided
@@ -1206,6 +1212,8 @@ add_processed() {
     .samples[$s].seq[$st].processed_data.seqz //= [] |
     .samples[$s].seq[$st].processed_data.sequenza //= [] |
     .samples[$s].seq[$st].processed_data.rseqz //= [] |
+    .samples[$s].seq[$st].processed_data.ichorcna //= [] |
+    .samples[$s].seq[$st].processed_data.ace //= [] |
     .samples[$s].seq[$st].processed_data.cna //= [] |
     .samples[$s].seq[$st].processed_data.qc //= [] |
     .samples[$s].seq[$st].processed_data[$dt] += [{
@@ -1263,6 +1271,8 @@ import_processed_tsv() {
         echo "  *.vcf.gz   -> processed_data.vcf"
         echo "  *.maf      -> processed_data.maf"
         echo "  *.seqz.gz  -> processed_data.seqz"
+        echo "  .../ichorcna_bin_1000kb -> processed_data.ichorcna"
+        echo "  .../ace -> processed_data.ace"
         echo ""
         echo "Recognized directory roots inferred from file paths:"
         echo "  .../sequenza/... -> processed_data.sequenza"
@@ -1270,7 +1280,7 @@ import_processed_tsv() {
         echo ""
         echo "Modes:"
         echo "  merge   Add new entries and skip exact file_path duplicates (default)"
-        echo "  replace Replace bam/vcf/maf/seqz/sequenza/rseqz for this sample+seq_type"
+        echo "  replace Replace bam/vcf/maf/seqz/sequenza/rseqz/ichorcna/ace for this sample+seq_type"
         echo ""
         echo "Options:"
         echo "  --dry-run  Preview what would be imported without modifying the DB"
@@ -1328,9 +1338,11 @@ def file_entry(category, path, size, epoch, created):
 
 def root_from_path(path, marker):
     token = f"/{marker}/"
-    if token not in path:
-        return None
-    return path.split(token, 1)[0] + token[:-1]
+    if token in path:
+        return path.split(token, 1)[0] + token[:-1]
+    if path.endswith(f"/{marker}"):
+        return path
+    return None
 
 def split_line(line):
     row = line.split("\t")
@@ -1346,6 +1358,8 @@ def init_target():
         "seqz": [],
         "sequenza": {},
         "rseqz": {},
+        "ichorcna": {},
+        "ace": {},
     }
 
 targets = {}
@@ -1426,6 +1440,18 @@ with tsv_path.open() as fh:
             if prev is None or epoch > prev["metadata"]["epoch"]:
                 collected["rseqz"][rseqz_root] = file_entry("rseqz", rseqz_root, None, epoch, created)
 
+        ichorcna_root = root_from_path(path, "ichorcna_bin_1000kb")
+        if ichorcna_root:
+            prev = collected["ichorcna"].get(ichorcna_root)
+            if prev is None or epoch > prev["metadata"]["epoch"]:
+                collected["ichorcna"][ichorcna_root] = file_entry("ichorcna", ichorcna_root, None, epoch, created)
+
+        ace_root = root_from_path(path, "ace")
+        if ace_root:
+            prev = collected["ace"].get(ace_root)
+            if prev is None or epoch > prev["metadata"]["epoch"]:
+                collected["ace"][ace_root] = file_entry("ace", ace_root, None, epoch, created)
+
 preview = {"mode": mode, "targets": []}
 
 for (row_sample, row_seq_type), collected in sorted(targets.items()):
@@ -1435,17 +1461,17 @@ for (row_sample, row_seq_type), collected in sorted(targets.items()):
     seq_rec.setdefault("technology", None)
     seq_rec.setdefault("raw_sequence", [])
     pd = seq_rec.setdefault("processed_data", {})
-    for key in ("bam", "vcf", "maf", "seqz", "sequenza", "rseqz", "cna", "qc"):
+    for key in ("bam", "vcf", "maf", "seqz", "sequenza", "rseqz", "ichorcna", "ace", "cna", "qc"):
         pd.setdefault(key, [])
 
     if mode == "replace":
-        for key in ("bam", "vcf", "maf", "seqz", "sequenza", "rseqz"):
+        for key in ("bam", "vcf", "maf", "seqz", "sequenza", "rseqz", "ichorcna", "ace"):
             pd[key] = []
 
     target_preview = {
         "sample": row_sample,
         "seq_type": row_seq_type,
-        "added": {k: [] for k in ("bam", "vcf", "maf", "seqz", "sequenza", "rseqz")}
+        "added": {k: [] for k in ("bam", "vcf", "maf", "seqz", "sequenza", "rseqz", "ichorcna", "ace")}
     }
 
     for key in ("bam", "vcf", "maf", "seqz"):
@@ -1458,7 +1484,7 @@ for (row_sample, row_seq_type), collected in sorted(targets.items()):
                     pd[key].append(item)
                     existing.add(item["file_path"])
 
-    for key in ("sequenza", "rseqz"):
+    for key in ("sequenza", "rseqz", "ichorcna", "ace"):
         existing = {item.get("file_path") for item in pd[key]}
         for path, item in sorted(collected[key].items()):
             if path not in existing:
@@ -1576,6 +1602,8 @@ add_bam() {
     .samples[$s].seq[$st].processed_data.seqz //= [] |
     .samples[$s].seq[$st].processed_data.sequenza //= [] |
     .samples[$s].seq[$st].processed_data.rseqz //= [] |
+    .samples[$s].seq[$st].processed_data.ichorcna //= [] |
+    .samples[$s].seq[$st].processed_data.ace //= [] |
     .samples[$s].seq[$st].processed_data.cna //= [] |
     .samples[$s].seq[$st].processed_data.qc //= [] |
     .samples[$s].seq[$st].processed_data.bam += [{

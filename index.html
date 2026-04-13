@@ -296,6 +296,8 @@
         seqz: [],
         sequenza: [],
         rseqz: [],
+        ichorcna: [],
+        ace: [],
         cna: [],
         qc: []
       };
@@ -553,7 +555,7 @@
     function renderSeqSection(seqType, info, query) {
       if (!info) return "";
       const fastqText = info.fastqPaths.length ? info.fastqPaths.join("\n") : "No raw fastq paths found.";
-      const processedKinds = ["bam", "vcf", "maf", "seqz", "sequenza", "rseqz", "cna", "qc"];
+      const processedKinds = ["bam", "vcf", "maf", "seqz", "sequenza", "rseqz", "ichorcna", "ace", "cna", "qc"];
       const processedRows = processedKinds.map(function(kind) {
         const items = (info.processedMeta && info.processedMeta[kind]) ? info.processedMeta[kind] : [];
         if (!items.length) return "";
