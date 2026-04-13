@@ -228,6 +228,7 @@
       const runs = [];
       const paths = [];
       const bamPaths = [];
+      const processedPaths = [];
       const seqSummary = {};
 
       seqTypes.forEach(function(seqType) {
@@ -240,6 +241,7 @@
         runs.push.apply(runs, info.runs);
         paths.push.apply(paths, info.fastqPaths);
         bamPaths.push.apply(bamPaths, info.bamPaths);
+        processedPaths.push.apply(processedPaths, info.processedPaths);
       });
 
       const tokenMap = {
@@ -253,7 +255,7 @@
         gf: gfIds.concat(gfSampleIdsAll),
         gfsample: gfSampleIdsAll,
         run: runs,
-        path: paths,
+        path: paths.concat(processedPaths),
         bam: bamPaths
       };
 
@@ -273,6 +275,7 @@
         runs: uniq(runs),
         paths: uniq(paths),
         bamPaths: uniq(bamPaths),
+        processedPaths: uniq(processedPaths),
         seqSummary: seqSummary,
         tokenMap: tokenMap,
         search: searchParts.join(" ")
@@ -285,7 +288,17 @@
       const runs = [];
       const fastqPaths = [];
       const bamPaths = [];
-      const bamMeta = [];
+      const processedPaths = [];
+      const processedMeta = {
+        bam: [],
+        vcf: [],
+        maf: [],
+        seqz: [],
+        sequenza: [],
+        rseqz: [],
+        cna: [],
+        qc: []
+      };
 
       const rawSeq = seqBlock.raw_sequence;
       const rawItems = Array.isArray(rawSeq) ? rawSeq : (rawSeq && typeof rawSeq === "object" ? [rawSeq] : []);
@@ -323,23 +336,29 @@
 
       const processed = seqBlock.processed_data;
       if (processed && typeof processed === "object") {
-        const bamValue = processed.bam;
-        const bamItems = Array.isArray(bamValue) ? bamValue : (bamValue && typeof bamValue === "object" ? [bamValue] : []);
-        bamItems.forEach(function(item) {
-          if (!item || typeof item !== "object") return;
-          const path = item.path || item.file_path || "";
-          const meta = item.metadata && typeof item.metadata === "object" ? item.metadata : {};
-          const creationDate = item.creation_date || item.created || meta.creation_date || meta.created || "";
-          const size = item.size || meta.size || "";
-          const epoch = item.epoch || meta.epoch || "";
-          const pipelineUrl = item.pipeline_url || item.url || meta.pipeline_url || "";
-          if (typeof path === "string" && path) bamPaths.push(path);
-          bamMeta.push({
-            path: path || "",
-            creation_date: creationDate || "",
-            size: size || "",
-            epoch: epoch || "",
-            url: pipelineUrl || ""
+        Object.keys(processedMeta).forEach(function(kind) {
+          const value = processed[kind];
+          const items = Array.isArray(value) ? value : (value && typeof value === "object" ? [value] : []);
+          items.forEach(function(item) {
+            if (!item || typeof item !== "object") return;
+            const path = item.path || item.file_path || "";
+            const meta = item.metadata && typeof item.metadata === "object" ? item.metadata : {};
+            const creationDate = item.creation_date || item.created || meta.creation_date || meta.created || "";
+            const size = item.size || meta.size || "";
+            const epoch = item.epoch || meta.epoch || "";
+            const pipelineUrl = item.pipeline_url || item.url || meta.pipeline_url || "";
+            if (typeof path === "string" && path) {
+              processedPaths.push(path);
+              if (kind === "bam") bamPaths.push(path);
+            }
+            processedMeta[kind].push({
+              path: path || "",
+              creation_date: creationDate || "",
+              size: size || "",
+              epoch: epoch || "",
+              url: pipelineUrl || "",
+              file_type: item.file_type || kind
+            });
           });
         });
       }
@@ -352,7 +371,8 @@
         runs: uniq(runs),
         fastqPaths: uniq(fastqPaths),
         bamPaths: uniq(bamPaths),
-        bamMeta: bamMeta
+        processedPaths: uniq(processedPaths),
+        processedMeta: processedMeta
       };
     }
 
@@ -533,20 +553,25 @@
     function renderSeqSection(seqType, info, query) {
       if (!info) return "";
       const fastqText = info.fastqPaths.length ? info.fastqPaths.join("\n") : "No raw fastq paths found.";
-      const bamRows = info.bamMeta.length
-        ? info.bamMeta.map(function(meta, i) {
-            return '<details><summary>bam ' + (i + 1) + '</summary>' +
-              '<div class="kv">' +
-              '<div class="k">bam_path</div><div class="v">' + renderValue(meta.path, query) + '</div>' +
-              '<div class="k">creation</div><div class="v">' + renderValue(meta.creation_date, query) + '</div>' +
-              '<div class="k">size</div><div class="v">' + renderValue(meta.size, query) + '</div>' +
-              '<div class="k">epoch</div><div class="v">' + renderValue(meta.epoch, query) + '</div>' +
-              '<div class="k">url</div><div class="v">' + renderValue(meta.url, query) + '</div>' +
-              '</div></details>';
-          }).join("")
-        : '<div class="status">No BAM records found.</div>';
+      const processedKinds = ["bam", "vcf", "maf", "seqz", "sequenza", "rseqz", "cna", "qc"];
+      const processedRows = processedKinds.map(function(kind) {
+        const items = (info.processedMeta && info.processedMeta[kind]) ? info.processedMeta[kind] : [];
+        if (!items.length) return "";
+        const itemRows = items.map(function(meta, i) {
+          return '<details><summary>' + escapeHtml(kind) + ' ' + (i + 1) + '</summary>' +
+            '<div class="kv">' +
+            '<div class="k">path</div><div class="v">' + renderValue(meta.path, query) + '</div>' +
+            '<div class="k">file_type</div><div class="v">' + renderValue(meta.file_type, query) + '</div>' +
+            '<div class="k">creation</div><div class="v">' + renderValue(meta.creation_date, query) + '</div>' +
+            '<div class="k">size</div><div class="v">' + renderValue(meta.size, query) + '</div>' +
+            '<div class="k">epoch</div><div class="v">' + renderValue(meta.epoch, query) + '</div>' +
+            '<div class="k">url</div><div class="v">' + renderValue(meta.url, query) + '</div>' +
+            '</div></details>';
+        }).join("");
+        return '<details><summary>' + escapeHtml(kind) + ' (' + items.length + ')</summary>' + itemRows + '</details>';
+      }).join("") || '<div class="status">No processed records found.</div>';
       return '<details>' +
-        '<summary>' + escapeHtml(seqType) + ' (gf_projects ' + info.gfProjects.length + ', gf_samples ' + info.gfSampleIds.length + ', runs ' + info.runs.length + ', fastqs ' + info.fastqPaths.length + ', bams ' + info.bamPaths.length + ')</summary>' +
+        '<summary>' + escapeHtml(seqType) + ' (gf_projects ' + info.gfProjects.length + ', gf_samples ' + info.gfSampleIds.length + ', runs ' + info.runs.length + ', fastqs ' + info.fastqPaths.length + ', processed ' + info.processedPaths.length + ')</summary>' +
         '<h4>raw_sequence</h4>' +
         '<div class="kv">' +
         '<div class="k">indexing</div><div class="v">' + renderValue(info.indexing, query) + '</div>' +
@@ -557,7 +582,7 @@
         '</div>' +
         '<details><summary>raw_fastq_paths (' + info.fastqPaths.length + ')</summary><pre>' + highlight(fastqText, query) + '</pre></details>' +
         '<h4>processed_data</h4>' +
-        bamRows +
+        processedRows +
         '</details>';
     }
 

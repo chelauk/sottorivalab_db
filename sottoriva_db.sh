@@ -146,7 +146,8 @@ Commands:
   export-fastqs-csv    Export FASTQ paths for a sample to CSV
   audit                Run a data-quality audit (missing required fields)
   validate-db          Validate DB JSON against JSON Schema
-  add-processed        Add processed output (vcf/cna/qc) to a sample
+  add-processed        Add processed output to a sample
+  import-processed-tsv Import processed outputs from a TSV file
   add-fastq            Add FASTQ files to a sample (detailed mode)
   add-fastq-simple     Add FASTQ files with automatic lane/read detection
   add-bam              Add a BAM file to a sample
@@ -165,6 +166,7 @@ Run:
   sottoriva_db audit --help
   sottoriva_db validate-db --help
   sottoriva_db add-processed --help
+  sottoriva_db import-processed-tsv --help
   sottoriva_db add-fastq-simple <sample> <gf_id> <gf_project> <run> <seq_type> <path>
   sottoriva_db remove-bam --help
   sottoriva_db cleanup-bams --help
@@ -656,6 +658,10 @@ set_seq_meta() {
     .samples[$s].seq[$st].processed_data //= {} |
     .samples[$s].seq[$st].processed_data.bam //= [] |
     .samples[$s].seq[$st].processed_data.vcf //= [] |
+    .samples[$s].seq[$st].processed_data.maf //= [] |
+    .samples[$s].seq[$st].processed_data.seqz //= [] |
+    .samples[$s].seq[$st].processed_data.sequenza //= [] |
+    .samples[$s].seq[$st].processed_data.rseqz //= [] |
     .samples[$s].seq[$st].processed_data.cna //= [] |
     .samples[$s].seq[$st].processed_data.qc //= [] |
     .samples[$s].seq[$st].indexing = (if $idx == "" then .samples[$s].seq[$st].indexing else $idx end) |
@@ -997,7 +1003,7 @@ audit_db() {
     .samples | to_entries[] as $s |
     ($s.value.seq // {}) | to_entries[] as $q |
     ($q.value.processed_data // {}) as $pd |
-    ["bam","vcf","cna","qc"][] as $k |
+    ["bam","vcf","maf","seqz","sequenza","rseqz","cna","qc"][] as $k |
     (($pd[$k]) // []) as $arr |
     select(($arr | type) != "array" or ($arr | length) == 0) |
     "\($s.key)\t\($q.key)\t\($k)"
@@ -1034,6 +1040,10 @@ audit_db() {
       seq_raw_sequence_empty: ([.samples[]?.seq | to_entries[]? | (.value.raw_sequence // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
       pd_bam_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.bam // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
       pd_vcf_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.vcf // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
+      pd_maf_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.maf // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
+      pd_seqz_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.seqz // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
+      pd_sequenza_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.sequenza // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
+      pd_rseqz_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.rseqz // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
       pd_cna_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.cna // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length),
       pd_qc_empty: ([.samples[]?.seq | to_entries[]? | (.value.processed_data.qc // []) as $v | select(($v | type) != "array" or ($v | length) == 0)] | length)
     }
@@ -1058,6 +1068,10 @@ audit_db() {
     "  seq.raw_sequence empty: \(.seq_raw_sequence_empty)\n" +
     "  processed_data.bam empty: \(.pd_bam_empty)\n" +
     "  processed_data.vcf empty: \(.pd_vcf_empty)\n" +
+    "  processed_data.maf empty: \(.pd_maf_empty)\n" +
+    "  processed_data.seqz empty: \(.pd_seqz_empty)\n" +
+    "  processed_data.sequenza empty: \(.pd_sequenza_empty)\n" +
+    "  processed_data.rseqz empty: \(.pd_rseqz_empty)\n" +
     "  processed_data.cna empty: \(.pd_cna_empty)\n" +
     "  processed_data.qc empty: \(.pd_qc_empty)"
   '
@@ -1119,7 +1133,7 @@ add_processed() {
       --size)         size="$2"; shift 2 ;;
       --json)         json="$2"; shift 2 ;;
       --help)
-        echo "Usage: sottoriva_db add-processed --sample S --seq-type ST --data-type (vcf|cna|qc) --file-path PATH [--pipeline-url URL] [--epoch E] [--created D] [--size N] [--json FILE]"
+        echo "Usage: sottoriva_db add-processed --sample S --seq-type ST --data-type (vcf|maf|seqz|sequenza|rseqz|cna|qc) --file-path PATH [--pipeline-url URL] [--epoch E] [--created D] [--size N] [--json FILE]"
         return 0
         ;;
       *) die "Unexpected arg: $1" ;;
@@ -1131,8 +1145,8 @@ add_processed() {
   : "${data_type:?Missing --data-type}"
   : "${file_path:?Missing --file-path}"
 
-  if [[ "$data_type" != "vcf" && "$data_type" != "cna" && "$data_type" != "qc" ]]; then
-    die "Invalid --data-type: $data_type (allowed: vcf, cna, qc)"
+  if [[ "$data_type" != "vcf" && "$data_type" != "maf" && "$data_type" != "seqz" && "$data_type" != "sequenza" && "$data_type" != "rseqz" && "$data_type" != "cna" && "$data_type" != "qc" ]]; then
+    die "Invalid --data-type: $data_type (allowed: vcf, maf, seqz, sequenza, rseqz, cna, qc)"
   fi
 
   # Default values if not provided
@@ -1188,6 +1202,10 @@ add_processed() {
     .samples[$s].seq[$st].processed_data //= {} |
     .samples[$s].seq[$st].processed_data.bam //= [] |
     .samples[$s].seq[$st].processed_data.vcf //= [] |
+    .samples[$s].seq[$st].processed_data.maf //= [] |
+    .samples[$s].seq[$st].processed_data.seqz //= [] |
+    .samples[$s].seq[$st].processed_data.sequenza //= [] |
+    .samples[$s].seq[$st].processed_data.rseqz //= [] |
     .samples[$s].seq[$st].processed_data.cna //= [] |
     .samples[$s].seq[$st].processed_data.qc //= [] |
     .samples[$s].seq[$st].processed_data[$dt] += [{
@@ -1211,6 +1229,226 @@ add_processed() {
     rm -f "$tmp_file"
     cleanup_json_view
     die "Failed to update JSON"
+  fi
+}
+
+import_processed_tsv() {
+  local sample="" seq_type="" tsv="" mode="merge" dry_run="false" json="working_con_db.json"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --sample) sample="$2"; shift 2 ;;
+      --seq-type) seq_type="$2"; shift 2 ;;
+      --tsv) tsv="$2"; shift 2 ;;
+      --mode) mode="$2"; shift 2 ;;
+      --dry-run) dry_run="true"; shift ;;
+      --json) json="$2"; shift 2 ;;
+      --help)
+        echo "Usage: sottoriva_db import-processed-tsv --sample S --seq-type ST --tsv FILE [--mode merge|replace] [--dry-run] [--json FILE]"
+        echo ""
+        echo "Import processed outputs from a TSV with columns:"
+        echo "  path  size_bytes  mtime_epoch  mtime_iso"
+        echo ""
+        echo "Recognized file imports:"
+        echo "  *.bam      -> processed_data.bam"
+        echo "  *.vcf.gz   -> processed_data.vcf"
+        echo "  *.maf      -> processed_data.maf"
+        echo "  *.seqz.gz  -> processed_data.seqz"
+        echo ""
+        echo "Recognized directory roots inferred from file paths:"
+        echo "  .../sequenza/... -> processed_data.sequenza"
+        echo "  .../rseqz/...    -> processed_data.rseqz"
+        echo ""
+        echo "Modes:"
+        echo "  merge   Add new entries and skip exact file_path duplicates (default)"
+        echo "  replace Replace bam/vcf/maf/seqz/sequenza/rseqz for this sample+seq_type"
+        echo ""
+        echo "Options:"
+        echo "  --dry-run  Preview what would be imported without modifying the DB"
+        return 0
+        ;;
+      *) die "Unexpected arg: $1" ;;
+    esac
+  done
+
+  : "${sample:?Missing --sample}"
+  : "${seq_type:?Missing --seq-type}"
+  : "${tsv:?Missing --tsv}"
+
+  if [[ "$mode" != "merge" && "$mode" != "replace" ]]; then
+    die "Invalid --mode: $mode (allowed: merge, replace)"
+  fi
+
+  if [[ ! -f "$json" ]]; then
+    die "Database file not found: $json"
+  fi
+  if [[ ! -f "$tsv" ]]; then
+    die "TSV file not found: $tsv"
+  fi
+
+  local json_src="$json"
+  prepare_json_view "$json_src" || die "Failed to prepare JSON view"
+  json="$VIEW_JSON"
+
+  local sample_exists
+  sample_exists=$(jq --arg s "$sample" '.samples | has($s)' "$json")
+  if [[ "$sample_exists" != "true" ]]; then
+    cleanup_json_view
+    die "Sample not found: $sample"
+  fi
+
+  local tmp_file
+  tmp_file=$(mktemp)
+
+  python3 - "$json" "$tsv" "$sample" "$seq_type" "$mode" "$dry_run" > "$tmp_file" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+json_path = Path(sys.argv[1])
+tsv_path = Path(sys.argv[2])
+sample = sys.argv[3]
+seq_type = sys.argv[4]
+mode = sys.argv[5]
+dry_run = sys.argv[6] == "true"
+
+data = json.loads(json_path.read_text())
+
+sample_rec = data["samples"][sample]
+seq_rec = sample_rec.setdefault("seq", {}).setdefault(seq_type, {})
+seq_rec.setdefault("indexing", None)
+seq_rec.setdefault("technology", None)
+seq_rec.setdefault("raw_sequence", [])
+pd = seq_rec.setdefault("processed_data", {})
+for key in ("bam", "vcf", "maf", "seqz", "sequenza", "rseqz", "cna", "qc"):
+    pd.setdefault(key, [])
+
+def file_entry(category, path, size, epoch, created):
+    return {
+        "file_path": path,
+        "file_type": category,
+        "pipeline_url": None,
+        "metadata": {
+            "size": size,
+            "created": created,
+            "epoch": epoch,
+        },
+    }
+
+def root_from_path(path, marker):
+    token = f"/{marker}/"
+    if token not in path:
+        return None
+    return path.split(token, 1)[0] + token[:-1]
+
+collected = {
+    "bam": [],
+    "vcf": [],
+    "maf": [],
+    "seqz": [],
+    "sequenza": {},
+    "rseqz": {},
+}
+
+with tsv_path.open() as fh:
+    for raw_line in fh:
+        line = raw_line.rstrip("\n")
+        if not line:
+            continue
+        row = line.split("\t")
+        if len(row) < 4 and "\\t" in line:
+            row = line.split("\\t")
+        if not row:
+            continue
+        if row[0] == "path":
+            continue
+        if len(row) < 4:
+            continue
+        path, size_raw, epoch_raw = row[0], row[1], row[2]
+        created = "\t".join(row[3:]) if "\t" in line and len(line.split("\t")) >= 4 else "\\t".join(row[3:]) if "\\t" in line and len(line.split("\\t")) >= 4 else row[3]
+        try:
+            size = int(size_raw)
+        except Exception:
+            size = None
+        try:
+            epoch = int(float(epoch_raw))
+        except Exception:
+            epoch = 0
+
+        if path.endswith(".bam") and not path.endswith(".bam.bai"):
+            collected["bam"].append(file_entry("bam", path, size, epoch, created))
+        elif path.endswith(".vcf.gz"):
+            collected["vcf"].append(file_entry("vcf", path, size, epoch, created))
+        elif path.endswith(".maf"):
+            collected["maf"].append(file_entry("maf", path, size, epoch, created))
+        elif path.endswith(".seqz.gz"):
+            collected["seqz"].append(file_entry("seqz", path, size, epoch, created))
+
+        sequenza_root = root_from_path(path, "sequenza")
+        if sequenza_root:
+            prev = collected["sequenza"].get(sequenza_root)
+            if prev is None or epoch > prev["metadata"]["epoch"]:
+                collected["sequenza"][sequenza_root] = file_entry("sequenza", sequenza_root, None, epoch, created)
+
+        rseqz_root = root_from_path(path, "rseqz")
+        if rseqz_root:
+            prev = collected["rseqz"].get(rseqz_root)
+            if prev is None or epoch > prev["metadata"]["epoch"]:
+                collected["rseqz"][rseqz_root] = file_entry("rseqz", rseqz_root, None, epoch, created)
+
+if mode == "replace":
+    for key in ("bam", "vcf", "maf", "seqz", "sequenza", "rseqz"):
+        pd[key] = []
+
+preview = {"added": {k: [] for k in ("bam", "vcf", "maf", "seqz", "sequenza", "rseqz")}}
+
+for key in ("bam", "vcf", "maf", "seqz"):
+    existing = {item.get("file_path") for item in pd[key]}
+    for item in collected[key]:
+        if item["file_path"] not in existing:
+            if dry_run:
+                preview["added"][key].append(item)
+            else:
+                pd[key].append(item)
+                existing.add(item["file_path"])
+
+for key in ("sequenza", "rseqz"):
+    existing = {item.get("file_path") for item in pd[key]}
+    for path, item in sorted(collected[key].items()):
+        if path not in existing:
+            if dry_run:
+                preview["added"][key].append(item)
+            else:
+                pd[key].append(item)
+                existing.add(path)
+
+if dry_run:
+    preview["sample"] = sample
+    preview["seq_type"] = seq_type
+    preview["mode"] = mode
+    preview["counts"] = {k: len(v) for k, v in preview["added"].items()}
+    print(json.dumps(preview, indent=2))
+else:
+    print(json.dumps(data, indent=2))
+PY
+
+  if [[ $? -eq 0 ]]; then
+    if [[ "$dry_run" == "true" ]]; then
+      cat "$tmp_file"
+      rm -f "$tmp_file"
+      cleanup_json_view
+      echo ""
+      echo "Dry run only. Database not modified."
+    else
+      mv "$tmp_file" "$json"
+      commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write JSON"; }
+      cleanup_json_view
+      echo "Imported processed data for $sample ($seq_type) from $tsv"
+    fi
+  else
+    rm -f "$tmp_file"
+    cleanup_json_view
+    die "Failed to import processed data"
   fi
 }
 
@@ -1288,6 +1526,10 @@ add_bam() {
     .samples[$s].seq[$st].processed_data //= {} |
     .samples[$s].seq[$st].processed_data.bam //= [] |
     .samples[$s].seq[$st].processed_data.vcf //= [] |
+    .samples[$s].seq[$st].processed_data.maf //= [] |
+    .samples[$s].seq[$st].processed_data.seqz //= [] |
+    .samples[$s].seq[$st].processed_data.sequenza //= [] |
+    .samples[$s].seq[$st].processed_data.rseqz //= [] |
     .samples[$s].seq[$st].processed_data.cna //= [] |
     .samples[$s].seq[$st].processed_data.qc //= [] |
     .samples[$s].seq[$st].processed_data.bam += [{
@@ -1607,6 +1849,7 @@ case "$cmd" in
   audit) audit_db "$@" ;;
   validate-db) validate_db "$@" ;;
   add-processed) add_processed "$@" ;;
+  import-processed-tsv) import_processed_tsv "$@" ;;
   add-fastq)  add_fastq "$@" ;;
   add-fastq-simple) add_fastq_simple "$@" ;;
   add-bam)    add_bam "$@" ;;
