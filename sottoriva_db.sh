@@ -1244,10 +1244,19 @@ import_processed_tsv() {
       --dry-run) dry_run="true"; shift ;;
       --json) json="$2"; shift 2 ;;
       --help)
-        echo "Usage: sottoriva_db import-processed-tsv --sample S --seq-type ST --tsv FILE [--mode merge|replace] [--dry-run] [--json FILE]"
+        echo "Usage: sottoriva_db import-processed-tsv --tsv FILE [--sample S] [--seq-type ST] [--mode merge|replace] [--dry-run] [--json FILE]"
         echo ""
-        echo "Import processed outputs from a TSV with columns:"
-        echo "  path  size_bytes  mtime_epoch  mtime_iso"
+        echo "Import processed outputs from a TSV."
+        echo ""
+        echo "Accepted TSV formats:"
+        echo "  Single-sample:"
+        echo "    path  size_bytes  mtime_epoch  mtime_iso"
+        echo "    Requires --sample and --seq-type"
+        echo ""
+        echo "  Bulk:"
+        echo "    sample_id  sample_root  seq_type  path  size_bytes  mtime_epoch  mtime_iso"
+        echo "    or"
+        echo "    sample_id  seq_type  path  size_bytes  mtime_epoch  mtime_iso"
         echo ""
         echo "Recognized file imports:"
         echo "  *.bam      -> processed_data.bam"
@@ -1271,8 +1280,6 @@ import_processed_tsv() {
     esac
   done
 
-  : "${sample:?Missing --sample}"
-  : "${seq_type:?Missing --seq-type}"
   : "${tsv:?Missing --tsv}"
 
   if [[ "$mode" != "merge" && "$mode" != "replace" ]]; then
@@ -1290,13 +1297,6 @@ import_processed_tsv() {
   prepare_json_view "$json_src" || die "Failed to prepare JSON view"
   json="$VIEW_JSON"
 
-  local sample_exists
-  sample_exists=$(jq --arg s "$sample" '.samples | has($s)' "$json")
-  if [[ "$sample_exists" != "true" ]]; then
-    cleanup_json_view
-    die "Sample not found: $sample"
-  fi
-
   local tmp_file
   tmp_file=$(mktemp)
 
@@ -1313,15 +1313,6 @@ mode = sys.argv[5]
 dry_run = sys.argv[6] == "true"
 
 data = json.loads(json_path.read_text())
-
-sample_rec = data["samples"][sample]
-seq_rec = sample_rec.setdefault("seq", {}).setdefault(seq_type, {})
-seq_rec.setdefault("indexing", None)
-seq_rec.setdefault("technology", None)
-seq_rec.setdefault("raw_sequence", [])
-pd = seq_rec.setdefault("processed_data", {})
-for key in ("bam", "vcf", "maf", "seqz", "sequenza", "rseqz", "cna", "qc"):
-    pd.setdefault(key, [])
 
 def file_entry(category, path, size, epoch, created):
     return {
@@ -1341,31 +1332,70 @@ def root_from_path(path, marker):
         return None
     return path.split(token, 1)[0] + token[:-1]
 
-collected = {
-    "bam": [],
-    "vcf": [],
-    "maf": [],
-    "seqz": [],
-    "sequenza": {},
-    "rseqz": {},
-}
+def split_line(line):
+    row = line.split("\t")
+    if len(row) < 4 and "\\t" in line:
+        row = line.split("\\t")
+    return row
+
+def init_target():
+    return {
+        "bam": [],
+        "vcf": [],
+        "maf": [],
+        "seqz": [],
+        "sequenza": {},
+        "rseqz": {},
+    }
+
+targets = {}
 
 with tsv_path.open() as fh:
+    header = None
     for raw_line in fh:
         line = raw_line.rstrip("\n")
         if not line:
             continue
-        row = line.split("\t")
-        if len(row) < 4 and "\\t" in line:
-            row = line.split("\\t")
+        row = split_line(line)
         if not row:
             continue
-        if row[0] == "path":
+        if header is None:
+            header = row
             continue
-        if len(row) < 4:
-            continue
-        path, size_raw, epoch_raw = row[0], row[1], row[2]
-        created = "\t".join(row[3:]) if "\t" in line and len(line.split("\t")) >= 4 else "\\t".join(row[3:]) if "\\t" in line and len(line.split("\\t")) >= 4 else row[3]
+
+        if header[:4] == ["path", "size_bytes", "mtime_epoch", "mtime_iso"]:
+            row_sample = sample
+            row_seq_type = seq_type
+            if not row_sample or not row_seq_type:
+                raise SystemExit("ERROR: single-sample TSV requires --sample and --seq-type")
+            if len(row) < 4:
+                continue
+            path, size_raw, epoch_raw, created = row[0], row[1], row[2], "\t".join(row[3:])
+        elif len(header) >= 7 and header[0] == "sample_id" and header[2] == "seq_type" and header[3] == "path":
+            if len(row) < 7:
+                continue
+            row_sample, row_seq_type = row[0], row[2]
+            path, size_raw, epoch_raw, created = row[3], row[4], row[5], "\t".join(row[6:])
+            if sample and row_sample != sample:
+                continue
+            if seq_type and row_seq_type != seq_type:
+                continue
+        elif len(header) >= 6 and header[0] == "sample_id" and header[1] == "seq_type" and header[2] == "path":
+            if len(row) < 6:
+                continue
+            row_sample, row_seq_type = row[0], row[1]
+            path, size_raw, epoch_raw, created = row[2], row[3], row[4], "\t".join(row[5:])
+            if sample and row_sample != sample:
+                continue
+            if seq_type and row_seq_type != seq_type:
+                continue
+        else:
+            raise SystemExit("ERROR: unrecognized TSV header")
+
+        if row_sample not in data["samples"]:
+            raise SystemExit(f"ERROR: sample not found in DB: {row_sample}")
+        collected = targets.setdefault((row_sample, row_seq_type), init_target())
+
         try:
             size = int(size_raw)
         except Exception:
@@ -1396,37 +1426,53 @@ with tsv_path.open() as fh:
             if prev is None or epoch > prev["metadata"]["epoch"]:
                 collected["rseqz"][rseqz_root] = file_entry("rseqz", rseqz_root, None, epoch, created)
 
-if mode == "replace":
-    for key in ("bam", "vcf", "maf", "seqz", "sequenza", "rseqz"):
-        pd[key] = []
+preview = {"mode": mode, "targets": []}
 
-preview = {"added": {k: [] for k in ("bam", "vcf", "maf", "seqz", "sequenza", "rseqz")}}
+for (row_sample, row_seq_type), collected in sorted(targets.items()):
+    sample_rec = data["samples"][row_sample]
+    seq_rec = sample_rec.setdefault("seq", {}).setdefault(row_seq_type, {})
+    seq_rec.setdefault("indexing", None)
+    seq_rec.setdefault("technology", None)
+    seq_rec.setdefault("raw_sequence", [])
+    pd = seq_rec.setdefault("processed_data", {})
+    for key in ("bam", "vcf", "maf", "seqz", "sequenza", "rseqz", "cna", "qc"):
+        pd.setdefault(key, [])
 
-for key in ("bam", "vcf", "maf", "seqz"):
-    existing = {item.get("file_path") for item in pd[key]}
-    for item in collected[key]:
-        if item["file_path"] not in existing:
-            if dry_run:
-                preview["added"][key].append(item)
-            else:
-                pd[key].append(item)
-                existing.add(item["file_path"])
+    if mode == "replace":
+        for key in ("bam", "vcf", "maf", "seqz", "sequenza", "rseqz"):
+            pd[key] = []
 
-for key in ("sequenza", "rseqz"):
-    existing = {item.get("file_path") for item in pd[key]}
-    for path, item in sorted(collected[key].items()):
-        if path not in existing:
-            if dry_run:
-                preview["added"][key].append(item)
-            else:
-                pd[key].append(item)
-                existing.add(path)
+    target_preview = {
+        "sample": row_sample,
+        "seq_type": row_seq_type,
+        "added": {k: [] for k in ("bam", "vcf", "maf", "seqz", "sequenza", "rseqz")}
+    }
+
+    for key in ("bam", "vcf", "maf", "seqz"):
+        existing = {item.get("file_path") for item in pd[key]}
+        for item in collected[key]:
+            if item["file_path"] not in existing:
+                if dry_run:
+                    target_preview["added"][key].append(item)
+                else:
+                    pd[key].append(item)
+                    existing.add(item["file_path"])
+
+    for key in ("sequenza", "rseqz"):
+        existing = {item.get("file_path") for item in pd[key]}
+        for path, item in sorted(collected[key].items()):
+            if path not in existing:
+                if dry_run:
+                    target_preview["added"][key].append(item)
+                else:
+                    pd[key].append(item)
+                    existing.add(path)
+
+    target_preview["counts"] = {k: len(v) for k, v in target_preview["added"].items()}
+    preview["targets"].append(target_preview)
 
 if dry_run:
-    preview["sample"] = sample
-    preview["seq_type"] = seq_type
-    preview["mode"] = mode
-    preview["counts"] = {k: len(v) for k, v in preview["added"].items()}
+    preview["target_count"] = len(preview["targets"])
     print(json.dumps(preview, indent=2))
 else:
     print(json.dumps(data, indent=2))
@@ -1443,7 +1489,7 @@ PY
       mv "$tmp_file" "$json"
       commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write JSON"; }
       cleanup_json_view
-      echo "Imported processed data for $sample ($seq_type) from $tsv"
+      echo "Imported processed data from $tsv"
     fi
   else
     rm -f "$tmp_file"
