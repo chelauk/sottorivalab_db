@@ -7,6 +7,29 @@ shift || true
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
+finalize_db_write() {
+  local src="$1" dst="$2"
+  local group="" mode=""
+
+  if [[ -e "$dst" ]]; then
+    group=$(stat -f '%Sg' "$dst" 2>/dev/null || true)
+    mode=$(stat -f '%Lp' "$dst" 2>/dev/null || true)
+  else
+    group=$(stat -f '%Sg' "$(dirname "$dst")" 2>/dev/null || true)
+    mode="664"
+  fi
+
+  if [[ -n "$group" ]]; then
+    chgrp "$group" "$src" 2>/dev/null || true
+  fi
+  if [[ -n "$mode" ]]; then
+    chmod "$mode" "$src" 2>/dev/null || true
+  fi
+  chmod g+rw "$src" 2>/dev/null || true
+
+  mv "$src" "$dst"
+}
+
 VIEW_JSON=""
 VIEW_TMP=""
 
@@ -120,7 +143,7 @@ commit_json_view() {
     local out_tmp
     out_tmp=$(mktemp)
     to_patient_centric_json "$VIEW_JSON" "$out_tmp" || { rm -f "$out_tmp"; return 1; }
-    mv "$out_tmp" "$dst"
+    finalize_db_write "$out_tmp" "$dst"
   fi
 }
 
@@ -277,7 +300,7 @@ add_sample() {
   ' "$json" > "$tmp_file"
   
   if [[ $? -eq 0 ]]; then
-    mv "$tmp_file" "$json"
+    finalize_db_write "$tmp_file" "$json"
     commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
     cleanup_json_view
     echo "Added sample $sample"
@@ -393,7 +416,7 @@ add_fastq() {
   ' "$json" > "$tmp_file"
   
   if [[ $? -eq 0 ]]; then
-    mv "$tmp_file" "$json"
+    finalize_db_write "$tmp_file" "$json"
     commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
     cleanup_json_view
     echo "Added FASTQs for $sample"
@@ -521,7 +544,7 @@ add_fastq_simple() {
   ' "$json" > "$tmp_file"
   
   if [[ $? -eq 0 ]]; then
-    mv "$tmp_file" "$json"
+    finalize_db_write "$tmp_file" "$json"
     commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
     cleanup_json_view
     echo "Added $read_type for lane $lane to sample $sample (gf_id: $gf_id, run: $run)"
@@ -598,7 +621,7 @@ set_sample_meta() {
   ' "$json" > "$tmp_file"
 
   if [[ $? -eq 0 ]]; then
-    mv "$tmp_file" "$json"
+    finalize_db_write "$tmp_file" "$json"
     commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
     cleanup_json_view
     echo "Updated sample_meta for $sample"
@@ -671,7 +694,7 @@ set_seq_meta() {
   ' "$json" > "$tmp_file"
 
   if [[ $? -eq 0 ]]; then
-    mv "$tmp_file" "$json"
+    finalize_db_write "$tmp_file" "$json"
     commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
     cleanup_json_view
     echo "Updated sequencing metadata for $sample ($seq_type)"
@@ -1229,7 +1252,7 @@ add_processed() {
   ' "$json" > "$tmp_file"
 
   if [[ $? -eq 0 ]]; then
-    mv "$tmp_file" "$json"
+    finalize_db_write "$tmp_file" "$json"
     commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
     cleanup_json_view
     echo "Added $data_type to sample $sample ($seq_type)"
@@ -1512,7 +1535,7 @@ PY
       echo ""
       echo "Dry run only. Database not modified."
     else
-      mv "$tmp_file" "$json"
+      finalize_db_write "$tmp_file" "$json"
       commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write JSON"; }
       cleanup_json_view
       echo "Imported processed data from $tsv"
@@ -1619,7 +1642,7 @@ add_bam() {
   ' "$json" > "$tmp_file"
   
   if [[ $? -eq 0 ]]; then
-    mv "$tmp_file" "$json"
+    finalize_db_write "$tmp_file" "$json"
     commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
     cleanup_json_view
     echo "Added BAM to sample $sample ($seq_type)"
@@ -1758,7 +1781,7 @@ remove_bam() {
   ' "$json" > "$tmp_file"
   
   if [[ $? -eq 0 ]]; then
-    mv "$tmp_file" "$json"
+    finalize_db_write "$tmp_file" "$json"
     commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
     cleanup_json_view
     echo "✓ Removed from database"
@@ -1890,7 +1913,7 @@ cleanup_bams() {
     ' "$json" > "$tmp_file"
     
     if [[ $? -eq 0 ]]; then
-      mv "$tmp_file" "$json"
+      finalize_db_write "$tmp_file" "$json"
       commit_json_view "$json_src" || { cleanup_json_view; die "Failed to write patient-centric JSON"; }
       echo ""
       echo "✓ Database updated"
